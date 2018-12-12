@@ -1,7 +1,7 @@
 import Editor from './editor'
 import './index.scss'
 console.log(312312)
-const kJSEditor = class JSEditor {
+const JSEditor = class JSEditor {
   constructor(target) {
     const me = this
 
@@ -11,7 +11,7 @@ const kJSEditor = class JSEditor {
       background: 'rgba(0, 0, 0, 0.9)',
       color: '#fff'
     }
-    me.KJSEditor = null
+    me.JSEditor = null
     me.textPerLine = [
       '4反倒是===23423 423 432423',
       '大叔大婶<span>==----=呵呵</span><span>呵呵</span><span>呵呵</span><span>呵呵</span><span>呵呵</span><span>呵呵</span>',
@@ -66,9 +66,9 @@ const kJSEditor = class JSEditor {
 
   init(target, a) {
     const me = this
-
+    
     me.Editor = new Editor(me, target)
   }
 }
 
-export default kJSEditor
+export default JSEditor

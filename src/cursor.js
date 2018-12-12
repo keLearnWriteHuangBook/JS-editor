@@ -1,4 +1,4 @@
-export default class kCursor {
+export default class Cursor {
   constructor (Editor) {
     const me = this
     me.Editor = Editor
@@ -9,11 +9,11 @@ export default class kCursor {
   createCursor () {
     const me = this
 
-    const KJSCursor = document.createElement('div')
-    me.Editor.KJSCursor = KJSCursor
-    KJSCursor.className = 'KJSCursor'
+    const JSCursor = document.createElement('div')
+    me.Editor.JSCursor = JSCursor
+    JSCursor.className = 'JSCursor'
 
-    me.Editor.KJSEditor.appendChild(KJSCursor)
+    me.Editor.JSEditor.appendChild(JSCursor)
   }
 
   moveCursor (x, y) {

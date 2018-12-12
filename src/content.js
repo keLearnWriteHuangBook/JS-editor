@@ -2,7 +2,7 @@ import { css } from './utils'
 import { fromEvent, empty } from 'rxjs'
 import { takeUntil, map, concatAll, take } from 'rxjs/operators'
 
-export default class kContent {
+export default class JSContent {
   constructor(Editor) {
     const me = this
     me.Editor = Editor
@@ -13,9 +13,9 @@ export default class kContent {
   createContent() {
     const me = this
 
-    const KJSContent = document.createElement('div')
-    me.Editor.KJSContent = KJSContent
-    KJSContent.className = 'KJSContent'
+    const JSContent = document.createElement('div')
+    me.Editor.JSContent = JSContent
+    JSContent.className = 'JSContent'
     const mousedown = fromEvent(document, 'mousedown')
     const mousemove = fromEvent(document, 'mousemove')
     const mouseup = fromEvent(document, 'mouseup')
@@ -23,13 +23,13 @@ export default class kContent {
     mousedown.pipe(
       map(e => {
         //判断是否激活Editor
-        if (me.Editor.KJSEditor.contains(e.target)) {
-          css(me.Editor.KJSCursor, {
+        if (me.Editor.JSEditor.contains(e.target)) {
+          css(me.Editor.JSCursor, {
             display: 'block'
           })
           return mousemove.pipe(takeUntil(mouseup))
         } else {
-          css(me.Editor.KJSCursor, {
+          css(me.Editor.JSCursor, {
             display: 'none'
           })
           return mousemove.pipe(take(0))
@@ -38,10 +38,8 @@ export default class kContent {
       concatAll()
     )
     .subscribe(e => console.log(e))
-
-
     
-    me.Editor.KJSEditor.appendChild(KJSContent)
+    me.Editor.JSEditor.appendChild(JSContent)
     me.contentChange.apply(me)
   }
 
@@ -50,22 +48,22 @@ export default class kContent {
     const fragment = document.createDocumentFragment()
 
     me.Editor.textPerLine.forEach((it, index) => {
-      const KJSLineWrapper = document.createElement('div')
-      KJSLineWrapper.className = 'KJSLineWrapper'
+      const JSLineWrapper = document.createElement('div')
+      JSLineWrapper.className = 'JSLineWrapper'
 
-      const KJSGutter = document.createElement('span')
-      KJSGutter.className = 'KJSGutter'
-      KJSGutter.innerText = index
-      KJSLineWrapper.appendChild(KJSGutter)
+      const JSGutter = document.createElement('span')
+      JSGutter.className = 'JSGutter'
+      JSGutter.innerText = index
+      JSLineWrapper.appendChild(JSGutter)
 
-      const KJSLine = document.createElement('pre')
-      KJSLine.className = 'KJSLine'
-      KJSLine.innerText = it
-      KJSLineWrapper.appendChild(KJSLine)
+      const JSLine = document.createElement('pre')
+      JSLine.className = 'JSLine'
+      JSLine.innerText = it
+      JSLineWrapper.appendChild(JSLine)
 
-      fragment.appendChild(KJSLineWrapper)
+      fragment.appendChild(JSLineWrapper)
     })
 
-    me.Editor.KJSContent.appendChild(fragment)
+    me.Editor.JSContent.appendChild(fragment)
   }
 }

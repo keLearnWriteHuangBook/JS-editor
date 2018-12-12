@@ -3,7 +3,7 @@ import Cursor from './cursor'
 import Textarea from './textarea'
 import Content from './content'
 
-export default class kEditor {
+export default class Editor {
   constructor (that, target) {
     const me = this
 
@@ -13,17 +13,17 @@ export default class kEditor {
   createEditor (that, target) {
     const me = this
 
-    const KJSEditor = document.createElement('div')
-    that.KJSEditor = KJSEditor
-    KJSEditor.className = 'KJSEditor'
+    const JSEditor = document.createElement('div')
+    that.JSEditor = JSEditor
+    JSEditor.className = 'JSEditor'
 
-    css(KJSEditor, {
+    css(JSEditor, {
       fontSize: that.fontSize + 'px',
       background: that.theme.background,
       color: that.theme.color
     })
 
-    target.appendChild(KJSEditor)
+    target.appendChild(JSEditor)
 
     that.textarea = new Textarea(that)
     that.cursor = new Cursor(that)

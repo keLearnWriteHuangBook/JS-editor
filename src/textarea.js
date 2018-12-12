@@ -1,4 +1,4 @@
-export default class kTextarea {
+export default class Textarea {
   constructor (Editor) {
     const me = this
     me.Editor = Editor
@@ -9,21 +9,21 @@ export default class kTextarea {
   createTextarea () {
     const me = this
 
-    const KJSTextareaWrap = document.createElement('div')
-    me.Editor.KJSTextareaWrap = KJSTextareaWrap
-    KJSTextareaWrap.className = 'KJSTextareaWrap'
+    const JSTextareaWrap = document.createElement('div')
+    me.Editor.JSTextareaWrap = JSTextareaWrap
+    JSTextareaWrap.className = 'JSTextareaWrap'
 
-    const KJSTextarea = document.createElement('textarea')
-    me.Editor.KJSTextarea = KJSTextarea
-    KJSTextarea.className = 'KJSTextarea'
+    const JSTextarea = document.createElement('textarea')
+    me.Editor.JSTextarea = JSTextarea
+    JSTextarea.className = 'JSTextarea'
 
-    KJSTextarea.addEventListener('input', function() {
+    JSTextarea.addEventListener('input', function() {
       console.log(this)
       console.log(this.value)
     })
 
-    KJSTextareaWrap.appendChild(KJSTextarea)
+    JSTextareaWrap.appendChild(JSTextarea)
 
-    me.Editor.KJSEditor.appendChild(KJSTextareaWrap)
+    me.Editor.JSEditor.appendChild(JSTextareaWrap)
   }
 }
