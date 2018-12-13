@@ -1,10 +1,11 @@
 import Editor from './editor'
 import './index.scss'
-console.log(312312)
+
 const JSEditor = class JSEditor {
   constructor(target) {
     const me = this
 
+    me.target = target
     me.fontSize = 14
     me.lineHeight = 20
     me.theme = {
@@ -15,7 +16,7 @@ const JSEditor = class JSEditor {
     me.textPerLine = [
       '4反倒是===23423 423 432423',
       '大叔大婶<span>==----=呵呵</span><span>呵呵</span><span>呵呵</span><span>呵呵</span><span>呵呵</span><span>呵呵</span>',
-      '可',
+      '可d',
       'ᄀ',
       'a',
       'a',
@@ -60,7 +61,7 @@ const JSEditor = class JSEditor {
       'a',
       'a'
     ]
-
+    me.gutterWidth = 60
     me.init.apply(me, [target])
   }
 

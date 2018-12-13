@@ -9,7 +9,7 @@
   }
   .JSCursor {
     height: 20px;
-    width: 1px;
+    width: 2px;
     position: absolute;
     background: rgba(255, 255, 255, 0.7);
     animation: blink 1s infinite;
@@ -26,28 +26,53 @@
   }
   .JSContent {
     position: relative;
-    width: calc(100% - 60px);
+    width: 100%;
     height: 100%;
     overflow: auto;
-    padding-left: 60px;
     outline: none;
-    .JSLineWrapper {
-      height: 20px;
-      line-height: 20px;
-      display: table-row-group;
+    .JSGutterWrapper {
+      display: inline-block;
+      vertical-align: top;
+      width: 60px;
+      user-select: none;
       .JSGutter {
-        position: absolute;
-        left: 0;
-        display: inline-block;
-        width: 60px;
         text-align: center;
-        vertical-align: top;
-      }
-      .JSLine {
-        display: inline-block;
-        margin: 0 8px 0 0;
-        line-height: 1;
+        height: 20px;
+        line-height: 20px;
       }
     }
+    .JSLineWrapper {
+      display: inline-block;
+      width: calc(100% - 60px);
+      user-select: none;
+      .JSLine {
+        margin: 0 8px 0 0;
+        display: table-row-group;
+        white-space: nowrap;
+        height: 20px;
+        line-height: 20px;
+        .JSLineSpan{
+          position: relative;
+        }
+      }
+    }
+    // .JSLineWrapper {
+    //   height: 20px;
+    //   line-height: 20px;
+    //   display: table-row-group;
+    //   cursor: pointer;
+    //   .JSGutter {
+    //     position: absolute;
+    //     left: 0;
+    //     display: inline-block;
+    //     text-align: center;
+    //     vertical-align: top;
+    //   }
+    //   .JSLine {
+    //     display: inline-block;
+    //     margin: 0 8px 0 0;
+    //     line-height: 1;
+    //   }
+    // }
   }
 }

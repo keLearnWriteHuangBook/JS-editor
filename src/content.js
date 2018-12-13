@@ -12,57 +12,141 @@ export default class JSContent {
 
   createContent() {
     const me = this
+    const Editor = me.Editor
 
     const JSContent = document.createElement('div')
-    me.Editor.JSContent = JSContent
+    Editor.JSContent = JSContent
     JSContent.className = 'JSContent'
     const mousedown = fromEvent(document, 'mousedown')
     const mousemove = fromEvent(document, 'mousemove')
     const mouseup = fromEvent(document, 'mouseup')
 
-    mousedown.pipe(
-      map(e => {
-        //判断是否激活Editor
-        if (me.Editor.JSEditor.contains(e.target)) {
-          css(me.Editor.JSCursor, {
-            display: 'block'
-          })
-          return mousemove.pipe(takeUntil(mouseup))
+    mousedown
+      .pipe(
+        map(e => {
+          //判断是否激活Editor
+          if (Editor.JSEditor.contains(e.target)) {
+            css(Editor.JSCursor, {
+              display: 'block'
+            })
+            moveCursor(e)
+            return mousemove.pipe(takeUntil(mouseup))
+          } else {
+            css(Editor.JSCursor, {
+              display: 'none'
+            })
+            return mousemove.pipe(take(0))
+          }
+        }),
+        concatAll()
+      )
+      .subscribe(moveCursor)
+
+    mouseup.subscribe(e => {
+      moveCursor(e)
+    })
+
+    function moveCursor(e) {
+      const curLine = Math.max(Math.floor(
+        (e.clientY - Editor.editorTop) / Editor.lineHeight
+      ), 0)
+      const clientY = curLine * Editor.lineHeight + Editor.lineHeight / 2
+      const simulationInfo = document.caretRangeFromPoint(
+        e.clientX,
+        clientY + Editor.editorTop
+      )
+      const endContainer = simulationInfo.endContainer
+      console.log(simulationInfo)
+      if (Editor.JSEditor.contains(e.target)) {
+        if (endContainer.nodeType === 3) {
+          const parentNode = endContainer.parentNode
+
+          if (parentNode.className === 'JSGutter') {
+            Editor.cursor.moveCursor(
+              Editor.gutterWidth,
+              curLine * Editor.lineHeight
+            )
+          } else {
+            //包裹一层防止多个内敛标签导致标签正好换行的宽度错误
+            const widthWrapperDom = document.createElement('p')
+            css(widthWrapperDom, {
+              position: 'absolute',
+              visibility: 'hidden'
+            })
+            console.log(parentNode)
+            console.log(parentNode.offsetParent)
+            console.log(parentNode.offsetLeft)
+            const widthDom = document.createElement('span')
+            widthDom.innerText = parentNode.innerText.slice(
+              0,
+              simulationInfo.endOffset
+            )
+            widthWrapperDom.appendChild(widthDom)
+
+            Editor.JSEditor.appendChild(widthWrapperDom)
+            const width = widthDom.getBoundingClientRect().width
+
+            Editor.cursor.moveCursor(
+              width + Editor.gutterWidth + parentNode.offsetLeft,
+              curLine * Editor.lineHeight
+            )
+          }
         } else {
-          css(me.Editor.JSCursor, {
-            display: 'none'
-          })
-          return mousemove.pipe(take(0))
+          
         }
-      }),
-      concatAll()
-    )
-    .subscribe(e => console.log(e))
-    
-    me.Editor.JSEditor.appendChild(JSContent)
+      } else {
+        Editor.cursor.moveCursor(
+          Editor.gutterWidth,
+          curLine * Editor.lineHeight
+        )
+      }
+    }
+
+    Editor.JSEditor.appendChild(JSContent)
     me.contentChange.apply(me)
   }
 
   contentChange() {
     const me = this
     const fragment = document.createDocumentFragment()
+    const JSGutterWrapper = document.createElement('div')
+    JSGutterWrapper.className = 'JSGutterWrapper'
+    const JSLineWrapper = document.createElement('div')
+    JSLineWrapper.className = 'JSLineWrapper'
 
     me.Editor.textPerLine.forEach((it, index) => {
-      const JSLineWrapper = document.createElement('div')
-      JSLineWrapper.className = 'JSLineWrapper'
-
-      const JSGutter = document.createElement('span')
+      const JSGutter = document.createElement('div')
       JSGutter.className = 'JSGutter'
+      css(JSGutter, {
+        width: me.Editor.gutterWidth + 'px'
+      })
       JSGutter.innerText = index
-      JSLineWrapper.appendChild(JSGutter)
+      JSGutterWrapper.appendChild(JSGutter)
 
-      const JSLine = document.createElement('pre')
+      const JSLine = document.createElement('div')
       JSLine.className = 'JSLine'
-      JSLine.innerText = it
-      JSLineWrapper.appendChild(JSLine)
+      const JSLineSpan = document.createElement('span')
+      JSLineSpan.className = 'JSLineSpan'
 
-      fragment.appendChild(JSLineWrapper)
+      const test2 = document.createElement('span')
+      test2.innerText = it
+      JSLineSpan.appendChild(test2)
+
+      const test = document.createElement('span')
+      test.innerHTML = '试试'
+      JSLineSpan.appendChild(test)
+
+      const test1 = document.createElement('span')
+      test1.innerHTML = '试试大叔大婶'
+      test.appendChild(test1)
+
+      JSLine.appendChild(JSLineSpan)
+
+      JSLineWrapper.appendChild(JSLine)
     })
+
+    fragment.appendChild(JSGutterWrapper)
+    fragment.appendChild(JSLineWrapper)
 
     me.Editor.JSContent.appendChild(fragment)
   }

@@ -25,6 +25,10 @@ export default class Editor {
 
     target.appendChild(JSEditor)
 
+    const JSEditorInfo = JSEditor.getBoundingClientRect()
+    that.editorTop = JSEditorInfo.top
+    that.editorLeft = JSEditorInfo.left
+
     that.textarea = new Textarea(that)
     that.cursor = new Cursor(that)
     that.content = new Content(that)

@@ -1,3 +1,5 @@
+import { css } from './utils'
+
 export default class Cursor {
   constructor (Editor) {
     const me = this
@@ -16,8 +18,13 @@ export default class Cursor {
     me.Editor.JSEditor.appendChild(JSCursor)
   }
 
-  moveCursor (x, y) {
-
+  moveCursor (left, top) {
+    const me = this
+    console.log(left)
+    css(me.Editor.JSCursor, {
+      left: left + 'px',
+      top: top + 'px'
+    })
   }
   
 }
