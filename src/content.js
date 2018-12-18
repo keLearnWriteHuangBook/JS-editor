@@ -104,6 +104,7 @@ export default class JSContent {
     const mousewheel = fromEvent(JSContent, 'mousewheel')
 
     mousewheel.subscribe(e => {
+      Editor.scrollBar.scrollWheel(e)
       e.preventDefault()
       e.stopPropagation()
     })

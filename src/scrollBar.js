@@ -78,4 +78,8 @@ export default class scrollBar {
         height: (contentViewHeight / contentAllHeight) * 100 + '%'
     })
   }
+
+  scrollWheel (e) {
+    console.log(e)
+  }
 }
