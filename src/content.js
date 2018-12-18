@@ -5,15 +5,13 @@ import './content.scss'
 
 export default class JSContent {
   constructor(Editor) {
-    const me = this
-    me.Editor = Editor
+    this.Editor = Editor
 
-    me.createContent.apply(me)
+    this.createContent()
   }
 
   createContent() {
-    const me = this
-    const Editor = me.Editor
+    const Editor = this.Editor
 
     const JSContent = document.createElement('div')
     Editor.JSContent = JSContent
@@ -48,25 +46,17 @@ export default class JSContent {
     })
 
     function moveCursor(e) {
-      const curLine = Math.max(Math.floor(
-        (e.clientY - Editor.editorTop) / Editor.lineHeight
-      ), 0)
+      const curLine = Math.max(Math.floor((e.clientY - Editor.editorTop) / Editor.lineHeight), 0)
       const clientY = curLine * Editor.lineHeight + Editor.lineHeight / 2
-      const simulationInfo = document.caretRangeFromPoint(
-        e.clientX,
-        clientY + Editor.editorTop
-      )
+      const simulationInfo = document.caretRangeFromPoint(e.clientX, clientY + Editor.editorTop)
       const endContainer = simulationInfo.endContainer
-     
+
       if (Editor.JSEditor.contains(e.target)) {
         if (endContainer.nodeType === 3) {
           const parentNode = endContainer.parentNode
 
           if (parentNode.className === 'JSGutter') {
-            Editor.cursor.moveCursor(
-              Editor.gutterWidth,
-              curLine * Editor.lineHeight
-            )
+            Editor.cursor.moveCursor(Editor.gutterWidth, curLine * Editor.lineHeight)
           } else {
             //包裹一层防止多个内敛标签导致标签正好换行的宽度错误
             const widthWrapperDom = document.createElement('p')
@@ -74,30 +64,20 @@ export default class JSContent {
               position: 'absolute',
               visibility: 'hidden'
             })
-         
+
             const widthDom = document.createElement('span')
-            widthDom.innerText = parentNode.innerText.slice(
-              0,
-              simulationInfo.endOffset
-            )
+            widthDom.innerText = parentNode.innerText.slice(0, simulationInfo.endOffset)
             widthWrapperDom.appendChild(widthDom)
 
             Editor.JSEditor.appendChild(widthWrapperDom)
             const width = widthDom.getBoundingClientRect().width
 
-            Editor.cursor.moveCursor(
-              width + Editor.gutterWidth + parentNode.offsetLeft,
-              curLine * Editor.lineHeight
-            )
+            Editor.cursor.moveCursor(width + Editor.gutterWidth + parentNode.offsetLeft, curLine * Editor.lineHeight)
           }
         } else {
-          
         }
       } else {
-        Editor.cursor.moveCursor(
-          Editor.gutterWidth,
-          curLine * Editor.lineHeight
-        )
+        Editor.cursor.moveCursor(Editor.gutterWidth, curLine * Editor.lineHeight)
       }
     }
 
@@ -109,12 +89,11 @@ export default class JSContent {
     })
 
     Editor.JSEditor.appendChild(JSContent)
-    me.contentChange.apply(me)
+    this.contentChange.apply(this)
   }
 
   contentChange() {
-    const me = this
-    const Editor = me.Editor
+    const Editor = this.Editor
     const fragment = document.createDocumentFragment()
     const JSGutterWrapper = document.createElement('div')
     JSGutterWrapper.className = 'JSGutterWrapper'
@@ -125,7 +104,7 @@ export default class JSContent {
     const JSLineWrapper = document.createElement('div')
     JSLineWrapper.className = 'JSLineWrapper'
     JSLineWrapperHidden.appendChild(JSLineWrapper)
-    
+
     Editor.textPerLine.forEach((it, index) => {
       const JSGutter = document.createElement('div')
       JSGutter.className = 'JSGutter'
