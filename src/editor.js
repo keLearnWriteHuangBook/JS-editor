@@ -2,6 +2,8 @@ import { css } from './utils'
 import Cursor from './cursor'
 import Textarea from './textarea'
 import Content from './content'
+import ScrollBar from './scrollBar'
+import './editor.scss'
 
 export default class Editor {
   constructor (that, target) {
@@ -28,9 +30,12 @@ export default class Editor {
     const JSEditorInfo = JSEditor.getBoundingClientRect()
     that.editorTop = JSEditorInfo.top
     that.editorLeft = JSEditorInfo.left
+    that.editorWidth = JSEditorInfo.width
+    that.editorHeight = JSEditorInfo.height
 
     that.textarea = new Textarea(that)
     that.cursor = new Cursor(that)
+    that.scrollBar = new ScrollBar(that)
     that.content = new Content(that)
   }
 }

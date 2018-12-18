@@ -1,6 +1,7 @@
 import { css } from './utils'
 import { fromEvent, empty } from 'rxjs'
 import { takeUntil, map, concatAll, take } from 'rxjs/operators'
+import './content.scss'
 
 export default class JSContent {
   constructor(Editor) {
@@ -56,7 +57,7 @@ export default class JSContent {
         clientY + Editor.editorTop
       )
       const endContainer = simulationInfo.endContainer
-      console.log(simulationInfo)
+     
       if (Editor.JSEditor.contains(e.target)) {
         if (endContainer.nodeType === 3) {
           const parentNode = endContainer.parentNode
@@ -73,9 +74,7 @@ export default class JSContent {
               position: 'absolute',
               visibility: 'hidden'
             })
-            console.log(parentNode)
-            console.log(parentNode.offsetParent)
-            console.log(parentNode.offsetLeft)
+         
             const widthDom = document.createElement('span')
             widthDom.innerText = parentNode.innerText.slice(
               0,
@@ -102,23 +101,36 @@ export default class JSContent {
       }
     }
 
+    const mousewheel = fromEvent(JSContent, 'mousewheel')
+
+    mousewheel.subscribe(e => {
+      e.preventDefault()
+      e.stopPropagation()
+    })
+
     Editor.JSEditor.appendChild(JSContent)
     me.contentChange.apply(me)
   }
 
   contentChange() {
     const me = this
+    const Editor = me.Editor
     const fragment = document.createDocumentFragment()
     const JSGutterWrapper = document.createElement('div')
     JSGutterWrapper.className = 'JSGutterWrapper'
+
+    const JSLineWrapperHidden = document.createElement('div')
+    JSLineWrapperHidden.className = 'JSLineWrapperHidden'
+
     const JSLineWrapper = document.createElement('div')
     JSLineWrapper.className = 'JSLineWrapper'
-
-    me.Editor.textPerLine.forEach((it, index) => {
+    JSLineWrapperHidden.appendChild(JSLineWrapper)
+    
+    Editor.textPerLine.forEach((it, index) => {
       const JSGutter = document.createElement('div')
       JSGutter.className = 'JSGutter'
       css(JSGutter, {
-        width: me.Editor.gutterWidth + 'px'
+        width: Editor.gutterWidth + 'px'
       })
       JSGutter.innerText = index
       JSGutterWrapper.appendChild(JSGutter)
@@ -146,8 +158,9 @@ export default class JSContent {
     })
 
     fragment.appendChild(JSGutterWrapper)
-    fragment.appendChild(JSLineWrapper)
+    fragment.appendChild(JSLineWrapperHidden)
 
-    me.Editor.JSContent.appendChild(fragment)
+    Editor.JSContent.appendChild(fragment)
+    Editor.scrollBar.setScrollWidth()
   }
 }

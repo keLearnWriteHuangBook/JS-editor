@@ -1,0 +1,18 @@
+.JSCursor {
+  height: 20px;
+  width: 2px;
+  position: absolute;
+  background: rgba(255, 255, 255, 0.7);
+  animation: blink 1s infinite;
+  display: none;
+  z-index: 1;
+}
+
+@keyframes blink {
+  from {
+    z-index: 1;
+  }
+  to {
+    z-index: -1;
+  }
+}

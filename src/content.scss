@@ -1,0 +1,40 @@
+.JSContent {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  outline: none;
+  .JSGutterWrapper {
+    display: inline-block;
+    vertical-align: top;
+    width: 60px;
+    user-select: none;
+    position: relative;
+    .JSGutter {
+      text-align: center;
+      height: 20px;
+      line-height: 20px;
+    }
+  }
+  .JSLineWrapperHidden {
+    display: inline-block;
+    width: calc(100% - 60px);
+    height: 100%;
+    user-select: none;
+    overflow: hidden;
+    position: relative;
+    cursor: text;
+    .JSLineWrapper {
+      .JSLine {
+        margin: 0 8px 0 0;
+        display: table-row-group;
+        white-space: nowrap;
+        height: 20px;
+        line-height: 20px;
+        .JSLineSpan {
+          position: relative;
+        }
+      }
+    }
+  }
+}
