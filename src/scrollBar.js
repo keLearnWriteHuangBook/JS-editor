@@ -3,38 +3,31 @@ import './scrollBar.scss'
 
 export default class scrollBar {
   constructor (Editor) {
-    const me = this
-    me.Editor = Editor
+    this.Editor = Editor
 
-    me.createScroll.apply(me)
-    me.setScrollWidth = me.setScrollWidth.bind(me)
+    this.createScroll()
   }
 
   createScroll () {
-    const me = this
-
-    me.createHorizonScroll.apply(me)
-    me.createVerticalScroll.apply(me)
+    this.createHorizonScroll()
+    this.createVerticalScroll()
   } 
 
   createHorizonScroll () {
-    const me = this
-
     const JSHorizonScroll = document.createElement('div')
-    me.Editor.JSHorizonScroll = JSHorizonScroll
+    this.Editor.JSHorizonScroll = JSHorizonScroll
     JSHorizonScroll.className = 'JSHorizonScroll'
 
     const JSHorizonScrollSlider = document.createElement('div')
-    me.Editor.JSHorizonScrollSlider = JSHorizonScrollSlider
+    this.Editor.JSHorizonScrollSlider = JSHorizonScrollSlider
     JSHorizonScrollSlider.className = 'JSHorizonScrollSlider'
     JSHorizonScroll.appendChild(JSHorizonScrollSlider)
 
-    me.Editor.JSEditor.appendChild(JSHorizonScroll)
+    this.Editor.JSEditor.appendChild(JSHorizonScroll)
   }
 
   createVerticalScroll () {
-    const me = this
-    const Editor = me.Editor
+    const Editor = this.Editor
 
     const JSVerticalScroll = document.createElement('div')
     Editor.JSVerticalScroll = JSVerticalScroll
@@ -49,15 +42,12 @@ export default class scrollBar {
   }
 
   setScrollWidth () {
-    const me = this
-    
-    me.setHorizonWidth.apply(me)
-    me.setVerticalWidth.apply(me)
+    this.setHorizonWidth()
+    this.setVerticalWidth()
   }
 
   setHorizonWidth () {
-    const me = this
-    const Editor = me.Editor
+    const Editor = this.Editor
     const JSLine = document.querySelector('.JSLineWrapper .JSLine')
     const contentAllWidth = JSLine.getBoundingClientRect().width
     const contentViewWidth = Editor.editorWidth - Editor.gutterWidth
@@ -69,8 +59,7 @@ export default class scrollBar {
   }
 
   setVerticalWidth () {
-    const me = this
-    const Editor = me.Editor
+    const Editor = this.Editor
     const contentAllHeight = Editor.textPerLine.length * Editor.lineHeight
     const contentViewHeight = Editor.editorHeight
 
