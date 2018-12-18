@@ -32,10 +32,26 @@ export default class Editor {
     this.editorLeft = JSEditorInfo.left
     this.editorWidth = JSEditorInfo.width
     this.editorHeight = JSEditorInfo.height
-
+    this.initComWidthEl()
     this.textarea = new Textarea(this)
     this.cursor = new Cursor(this)
     this.scrollBar = new ScrollBar(this)
     this.content = new Content(this)
+  }
+  initComWidthEl() {
+    const el = document.createElement('div')
+    el.style = `position:absolute;white-space:nowrap;visibility:hidden;font-size:${this.fontSize}px`
+    document.body.appendChild(el)
+    this.comWidthEl = el
+  }
+  getTargetWidth(target) {
+    let txt = ''
+    if (typeof target === 'object' && target instanceof HTMLElement) {
+      txt = target.innerText
+    } else {
+      txt = String(target)
+    }
+    this.comWidthEl.innerText = txt
+    return this.comWidthEl.getBoundingClientRect().width
   }
 }

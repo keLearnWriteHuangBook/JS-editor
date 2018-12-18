@@ -1,5 +1,5 @@
 import kJSEditor from '../index'
 
-   var dom = document.getElementById('editor')
-      console.log(kJSEditor)
-        const hehe = new kJSEditor(dom)
+var dom = document.getElementById('editor')
+console.log(kJSEditor)
+window.editor = new kJSEditor(dom)
