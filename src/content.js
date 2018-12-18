@@ -90,5 +90,6 @@ export default class JSContent {
 
     JSContent.appendChild(JSGutterWrapper)
     JSContent.appendChild(JSLineWrapperHidden)
+    Editor.scrollBar.setScrollWidth()
   }
 }

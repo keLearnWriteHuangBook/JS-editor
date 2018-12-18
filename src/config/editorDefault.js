@@ -7,7 +7,7 @@ export default {
   },
   textPerLine: [
     '4反倒是===23423 423 432423',
-    '大叔大婶<spa\<span\>8989</span>n>==----=呵呵</spann><span>呵呵</span><span>呵呵</span><span>呵呵</span><span>呵呵</span><span>呵呵</span>',
+    '大叔大婶<spa\<span\>8953453453453453453453453453453453453453453489</span>n>==----=呵呵</spann><span>呵呵</span><span>呵呵</span><span>呵呵</span><span>呵呵</span><span>呵呵</span>',
     '可d',
     'ᄀ',
     'a',
