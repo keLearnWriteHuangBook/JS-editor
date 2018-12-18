@@ -1,9 +1,9 @@
 .JSHorizonScroll {
-    width: 100%;
     height: 16px;
     position: absolute;
     left: 0;
     bottom: 0;
+    z-index: 1;
     .JSHorizonScrollSlider {
         height: 100%;
         position: absolute;
@@ -20,6 +20,7 @@
     position: absolute;
     right: 0;
     top: 0;
+    z-index: 1;
     .JSVerticalScrollSlider {
         width: 100%;
         position: absolute;

@@ -97,12 +97,14 @@ export default class JSContent {
     const Editor = this.Editor
     const fragment = document.createDocumentFragment()
     const JSGutterWrapper = document.createElement('div')
+    Editor.JSGutterWrapper = JSGutterWrapper
     JSGutterWrapper.className = 'JSGutterWrapper'
 
     const JSLineWrapperHidden = document.createElement('div')
     JSLineWrapperHidden.className = 'JSLineWrapperHidden'
 
     const JSLineWrapper = document.createElement('div')
+    Editor.JSLineWrapper = JSLineWrapper
     JSLineWrapper.className = 'JSLineWrapper'
     JSLineWrapperHidden.appendChild(JSLineWrapper)
 
