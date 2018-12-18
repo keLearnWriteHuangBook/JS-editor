@@ -1,10 +1,10 @@
 import Editor from './editor'
-import './index.scss'
+// import './index.scss'
 
 const JSEditor = class JSEditor {
   constructor(target) {
     const me = this
-
+    console.log(me)
     me.target = target
     me.fontSize = 14
     me.lineHeight = 20

@@ -1,3 +1,5 @@
+import './textarea.scss'
+
 export default class Textarea {
   constructor (Editor) {
     const me = this

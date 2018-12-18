@@ -1,4 +1,5 @@
 import { css } from './utils'
+import './cursor.scss'
 
 export default class Cursor {
   constructor (Editor) {
