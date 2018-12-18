@@ -16,9 +16,11 @@ export default class Textarea {
     this.Editor.JSTextarea = JSTextarea
     JSTextarea.className = 'JSTextarea'
 
+    const Editor = this.Editor
+
     JSTextarea.addEventListener('input', function() {
-      console.log(this)
-      console.log(this.value)
+      let curLine = parseInt(Editor.JSCursor.style.getPropertyValue('top')) / Editor.lineHeight
+      console.log(curLine)
     })
 
     JSTextareaWrap.appendChild(JSTextarea)

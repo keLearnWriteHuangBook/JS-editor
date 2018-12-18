@@ -28,7 +28,10 @@ export default class JSContent {
             css(Editor.JSCursor, {
               display: 'block'
             })
-            moveCursor(e)
+            Editor.cursor.moveToClickPoint(e)
+            // 必须阻止默认事件，否则输入框无法聚焦
+            e.preventDefault()
+            Editor.JSTextarea.focus()
             return mousemove.pipe(takeUntil(mouseup))
           } else {
             css(Editor.JSCursor, {
@@ -39,47 +42,11 @@ export default class JSContent {
         }),
         concatAll()
       )
-      .subscribe(moveCursor)
+      .subscribe(Editor.cursor.moveToClickPoint.bind(Editor.cursor))
 
     mouseup.subscribe(e => {
-      moveCursor(e)
+      Editor.cursor.moveToClickPoint(e)
     })
-
-    function moveCursor(e) {
-      const curLine = Math.max(Math.floor((e.clientY - Editor.editorTop) / Editor.lineHeight), 0)
-      const clientY = curLine * Editor.lineHeight + Editor.lineHeight / 2
-      const simulationInfo = document.caretRangeFromPoint(e.clientX, clientY + Editor.editorTop)
-      const endContainer = simulationInfo.endContainer
-
-      if (Editor.JSEditor.contains(e.target)) {
-        if (endContainer.nodeType === 3) {
-          const parentNode = endContainer.parentNode
-
-          if (parentNode.className === 'JSGutter') {
-            Editor.cursor.moveCursor(Editor.gutterWidth, curLine * Editor.lineHeight)
-          } else {
-            //包裹一层防止多个内敛标签导致标签正好换行的宽度错误
-            const widthWrapperDom = document.createElement('p')
-            css(widthWrapperDom, {
-              position: 'absolute',
-              visibility: 'hidden'
-            })
-
-            const widthDom = document.createElement('span')
-            widthDom.innerText = parentNode.innerText.slice(0, simulationInfo.endOffset)
-            widthWrapperDom.appendChild(widthDom)
-
-            Editor.JSEditor.appendChild(widthWrapperDom)
-            const width = widthDom.getBoundingClientRect().width
-
-            Editor.cursor.moveCursor(width + Editor.gutterWidth + parentNode.offsetLeft, curLine * Editor.lineHeight)
-          }
-        } else {
-        }
-      } else {
-        Editor.cursor.moveCursor(Editor.gutterWidth, curLine * Editor.lineHeight)
-      }
-    }
 
     const mousewheel = fromEvent(JSContent, 'mousewheel')
 
@@ -90,59 +57,38 @@ export default class JSContent {
     })
 
     Editor.JSEditor.appendChild(JSContent)
-    this.contentChange.apply(this)
+    this.initContent()
   }
+  initContent() {
+    const Editor = this.Editor,
+      { gutterWidth, JSContent } = Editor
 
-  contentChange() {
-    const Editor = this.Editor
-    const fragment = document.createDocumentFragment()
     const JSGutterWrapper = document.createElement('div')
     Editor.JSGutterWrapper = JSGutterWrapper
     JSGutterWrapper.className = 'JSGutterWrapper'
+    JSGutterWrapper.style = `width:${gutterWidth}px;`
 
     const JSLineWrapperHidden = document.createElement('div')
     JSLineWrapperHidden.className = 'JSLineWrapperHidden'
+    const contentWidth = JSContent.getBoundingClientRect().width
+    JSLineWrapperHidden.style = `width:${contentWidth - gutterWidth}px`
 
     const JSLineWrapper = document.createElement('div')
     Editor.JSLineWrapper = JSLineWrapper
     JSLineWrapper.className = 'JSLineWrapper'
     JSLineWrapperHidden.appendChild(JSLineWrapper)
 
-    Editor.textPerLine.forEach((it, index) => {
-      const JSGutter = document.createElement('div')
-      JSGutter.className = 'JSGutter'
-      css(JSGutter, {
-        width: Editor.gutterWidth + 'px'
-      })
-      JSGutter.innerText = index
-      JSGutterWrapper.appendChild(JSGutter)
-
-      const JSLine = document.createElement('div')
-      JSLine.className = 'JSLine'
-      const JSLineSpan = document.createElement('span')
-      JSLineSpan.className = 'JSLineSpan'
-
-      const test2 = document.createElement('span')
-      test2.innerText = it
-      JSLineSpan.appendChild(test2)
-
-      const test = document.createElement('span')
-      test.innerHTML = '试试'
-      JSLineSpan.appendChild(test)
-
-      const test1 = document.createElement('span')
-      test1.innerHTML = '试试大叔大婶'
-      test.appendChild(test1)
-
-      JSLine.appendChild(JSLineSpan)
-
-      JSLineWrapper.appendChild(JSLine)
+    let gutterHtml = '',
+      contentHtml = ''
+    Editor.textPerLine.forEach((item, index) => {
+      gutterHtml += `<div class="JSGutter">${index}</div>`
+      contentHtml += `<div class="JSLine">${item}</div>`
     })
 
-    fragment.appendChild(JSGutterWrapper)
-    fragment.appendChild(JSLineWrapperHidden)
+    JSGutterWrapper.innerHTML = gutterHtml
+    JSLineWrapper.innerHTML = contentHtml
 
-    Editor.JSContent.appendChild(fragment)
-    Editor.scrollBar.setScrollWidth()
+    JSContent.appendChild(JSGutterWrapper)
+    JSContent.appendChild(JSLineWrapperHidden)
   }
 }
