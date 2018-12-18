@@ -16,7 +16,8 @@ const webpackConfig = {
     contentBase: path.join(srcPath),
     host: '127.0.0.1',
     compress: true,
-    port: '8876'
+    port: '8876',
+    open: true
   },
   plugins: [
     new HtmlWebpackPlugin({
