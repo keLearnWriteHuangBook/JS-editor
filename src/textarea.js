@@ -1,22 +1,19 @@
 import './textarea.scss'
 
 export default class Textarea {
-  constructor (Editor) {
-    const me = this
-    me.Editor = Editor
+  constructor(Editor) {
+    this.Editor = Editor
 
-    me.createTextarea.apply(me)
+    this.createTextarea()
   }
 
-  createTextarea () {
-    const me = this
-
+  createTextarea() {
     const JSTextareaWrap = document.createElement('div')
-    me.Editor.JSTextareaWrap = JSTextareaWrap
+    this.Editor.JSTextareaWrap = JSTextareaWrap
     JSTextareaWrap.className = 'JSTextareaWrap'
 
     const JSTextarea = document.createElement('textarea')
-    me.Editor.JSTextarea = JSTextarea
+    this.Editor.JSTextarea = JSTextarea
     JSTextarea.className = 'JSTextarea'
 
     JSTextarea.addEventListener('input', function() {
@@ -26,6 +23,6 @@ export default class Textarea {
 
     JSTextareaWrap.appendChild(JSTextarea)
 
-    me.Editor.JSEditor.appendChild(JSTextareaWrap)
+    this.Editor.JSEditor.appendChild(JSTextareaWrap)
   }
 }

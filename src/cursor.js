@@ -2,30 +2,22 @@ import { css } from './utils'
 import './cursor.scss'
 
 export default class Cursor {
-  constructor (Editor) {
-    const me = this
-    me.Editor = Editor
-
-    me.createCursor.apply(me)
+  constructor(Editor) {
+    this.Editor = Editor
+    this.createCursor.apply(this)
   }
 
-  createCursor () {
-    const me = this
-
+  createCursor() {
     const JSCursor = document.createElement('div')
-    me.Editor.JSCursor = JSCursor
+    this.Editor.JSCursor = JSCursor
     JSCursor.className = 'JSCursor'
-
-    me.Editor.JSEditor.appendChild(JSCursor)
+    this.Editor.JSEditor.appendChild(JSCursor)
   }
 
-  moveCursor (left, top) {
-    const me = this
-    console.log(left)
-    css(me.Editor.JSCursor, {
+  moveCursor(left, top) {
+    css(this.Editor.JSCursor, {
       left: left + 'px',
       top: top + 'px'
     })
   }
-  
 }
