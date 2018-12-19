@@ -4,7 +4,12 @@ import './cursor.scss'
 export default class Cursor {
   constructor(Editor) {
     this.Editor = Editor
-    this.createCursor.apply(this)
+    Editor.cursorInfo = {
+      left: 0,
+      top: 0
+    }
+
+    this.createCursor()
   }
 
   createCursor() {
@@ -15,12 +20,22 @@ export default class Cursor {
   }
 
   moveCursor(left, top) {
+    !isNaN(left) || (left = this.Editor.cursorInfo.left)
+    !isNaN(top) || (top = this.Editor.cursorInfo.top)
+    
+    let nextLeft = left - this.Editor.scrollBarInfo.horizonScrollLeft * this.Editor.scrollBarInfo.horizonRate
+    let nextTop = top - this.Editor.scrollBarInfo.verticalScrollTop * this.Editor.scrollBarInfo.verticalRate
+ 
     css(this.Editor.JSCursor, {
-      left: left + 'px',
-      top: top + 'px'
+      left: nextLeft + 'px',
+      top: nextTop + 'px'
     })
+    this.Editor.cursorInfo = {
+      left,
+      top
+    }
   }
-  
+
   moveToLineStart(lineIndex) {
     const top = this.Editor.lineHeight * lineIndex
     this.moveCursor(this.Editor.gutterWidth, top)
@@ -30,27 +45,28 @@ export default class Cursor {
     const { textPerLine, gutterWidth, lineHeight } = this.Editor,
       lineTxt = textPerLine[lineIndex],
       top = lineHeight * lineIndex
+     
     this.moveCursor(gutterWidth + this.Editor.getTargetWidth(lineTxt), top)
   }
 
   moveToClickPoint(e) {
-    const Editor = this.Editor,
-      curLine = Math.max(Math.floor((e.clientY - Editor.editorTop) / Editor.lineHeight), 0),
-      clientY = curLine * Editor.lineHeight + Editor.lineHeight / 2,
-      range = document.caretRangeFromPoint(e.clientX, clientY + Editor.editorTop),
+    const { editorTop, lineHeight, JSEditor, cursor, gutterWidth } = this.Editor
+    const curLine = Math.max(Math.floor((e.clientY - editorTop) / lineHeight), 0),
+      clientY = curLine * lineHeight + lineHeight / 2,
+      range = document.caretRangeFromPoint(e.clientX, clientY + editorTop),
       endContainer = range.endContainer
-    if (Editor.JSEditor.contains(e.target)) {
+   
+    if (JSEditor.contains(e.target)) {
       if (endContainer.nodeType === 3) {
         const parentNode = endContainer.parentNode
         if (parentNode.className === 'JSGutter') {
           this.moveToLineStart(curLine)
         } else {
           const txt = parentNode.innerText.slice(0, range.endOffset),
-            width = Editor.getTargetWidth(txt)
-          Editor.cursor.moveCursor(width + Editor.gutterWidth + parentNode.offsetLeft, curLine * Editor.lineHeight)
+            width = this.Editor.getTargetWidth(txt)
+          cursor.moveCursor(width + gutterWidth + parentNode.offsetLeft, curLine * lineHeight)
         }
-      } else {
-      }
+      } else {}
     } else {
       this.moveToLineStart(curLine)
     }

@@ -13,7 +13,8 @@ export default class scrollBar {
       verticalRate: 0,
       horizonScrollLeft: 0,
       horizonScrollLength: 0,
-      horizonRate: 0
+      horizonRate: 0,
+      scrollRate: 0.5
     }
 
     this.createScroll()
@@ -27,14 +28,15 @@ export default class scrollBar {
   createHorizonScroll() {
     const me = this
     const Editor = this.Editor
+    const { gutterWidth, scrollThickness, JSEditor } = Editor
     const JSHorizonScroll = document.createElement('div')
     Editor.JSHorizonScroll = JSHorizonScroll
     JSHorizonScroll.className = 'JSHorizonScroll'
 
     css(JSHorizonScroll, {
-      width: `calc(100% - ${Editor.gutterWidth}px)`,
-      left: Editor.gutterWidth + 'px',
-      height: Editor.scrollThickness + 'px'
+      width: `calc(100% - ${gutterWidth}px)`,
+      left: gutterWidth + 'px',
+      height: scrollThickness + 'px'
     })
 
     const JSHorizonScrollSlider = document.createElement('div')
@@ -42,7 +44,7 @@ export default class scrollBar {
     JSHorizonScrollSlider.className = 'JSHorizonScrollSlider'
     JSHorizonScroll.appendChild(JSHorizonScrollSlider)
 
-    Editor.JSEditor.appendChild(JSHorizonScroll)
+    JSEditor.appendChild(JSHorizonScroll)
 
     const mousedown = fromEvent(JSHorizonScroll, 'mousedown')
     const mousemove = fromEvent(document, 'mousemove')
@@ -67,13 +69,14 @@ export default class scrollBar {
   createVerticalScroll() {
     const me = this
     const Editor = this.Editor
+    const { scrollThickness, JSEditor } = Editor
 
     const JSVerticalScroll = document.createElement('div')
     Editor.JSVerticalScroll = JSVerticalScroll
     JSVerticalScroll.className = 'JSVerticalScroll'
 
     css(JSVerticalScroll, {
-      width: Editor.scrollThickness + 'px'
+      width: scrollThickness + 'px'
     })
 
     const JSVerticalScrollSlider = document.createElement('div')
@@ -81,7 +84,7 @@ export default class scrollBar {
     JSVerticalScrollSlider.className = 'JSVerticalScrollSlider'
     JSVerticalScroll.appendChild(JSVerticalScrollSlider)
 
-    Editor.JSEditor.appendChild(JSVerticalScroll)
+    JSEditor.appendChild(JSVerticalScroll)
 
     const mousedown = fromEvent(JSVerticalScroll, 'mousedown')
     const mousemove = fromEvent(document, 'mousemove')
@@ -95,7 +98,7 @@ export default class scrollBar {
         map(e => {
           startPos.Y = e.clientY
           me.scrollVerticalMouse(me, null, e)
-
+          
           return mousemove.pipe(takeUntil(mouseup))
         }),
         concatAll()
@@ -109,28 +112,28 @@ export default class scrollBar {
   }
 
   setHorizonWidth() {
-    const Editor = this.Editor
+    const { editorWidth, gutterWidth, JSHorizonScrollSlider, scrollBarInfo } = this.Editor
     const JSLine = document.querySelector('.JSLineWrapper .JSLine')
-    const contentAllWidth = JSLine.getBoundingClientRect().width + Editor.scrollThickness * 2
-    const contentViewWidth = Editor.editorWidth - Editor.gutterWidth
+    const contentAllWidth = JSLine.getBoundingClientRect().width
+    const contentViewWidth = editorWidth - gutterWidth
     let length
     if (contentAllWidth > contentViewWidth) {
       length = (contentViewWidth / contentAllWidth) * 100 + '%'
     } else {
       length = 0
     }
-    css(Editor.JSHorizonScrollSlider, {
+    css(JSHorizonScrollSlider, {
       width: length
     })
 
-    Editor.scrollBarInfo.horizonScrollLength = Editor.JSHorizonScrollSlider.getBoundingClientRect().width
+    scrollBarInfo.horizonScrollLength = JSHorizonScrollSlider.getBoundingClientRect().width
     this.setHorizonRate()
   }
 
   setVerticalWidth() {
-    const Editor = this.Editor
-    const contentAllHeight = Editor.textPerLine.length * Editor.lineHeight + Editor.editorHeight - Editor.lineHeight
-    const contentViewHeight = Editor.editorHeight
+    const { textPerLine, lineHeight, editorHeight, JSVerticalScrollSlider, scrollBarInfo } = this.Editor
+    const contentAllHeight = textPerLine.length * lineHeight + editorHeight - lineHeight
+    const contentViewHeight = editorHeight
     let length
     if (contentAllHeight > contentViewHeight) {
       length = (contentViewHeight / contentAllHeight) * 100 + '%'
@@ -138,36 +141,36 @@ export default class scrollBar {
       length = 0
     }
 
-    css(Editor.JSVerticalScrollSlider, {
+    css(JSVerticalScrollSlider, {
       height: length
     })
 
-    Editor.scrollBarInfo.verticalScrollLength = Editor.JSVerticalScrollSlider.getBoundingClientRect().height
+    scrollBarInfo.verticalScrollLength = JSVerticalScrollSlider.getBoundingClientRect().height
     this.setVerticalRate()
   }
 
   setHorizonRate() {
-    const Editor = this.Editor
+    const { scrollBarInfo, editorWidth, gutterWidth } = this.Editor
     const JSLine = document.querySelector('.JSLineWrapper .JSLine')
-    const contentAllWidth = JSLine.getBoundingClientRect().width + Editor.scrollThickness * 2
-    Editor.scrollBarInfo.horizonRate =
-      (contentAllWidth - Editor.editorWidth + Editor.gutterWidth) / (Editor.editorWidth - Editor.gutterWidth - Editor.scrollBarInfo.horizonScrollLength)
+    const contentAllWidth = JSLine.getBoundingClientRect().width
+    scrollBarInfo.horizonRate =
+      (contentAllWidth - editorWidth + gutterWidth) / (editorWidth - gutterWidth - scrollBarInfo.horizonScrollLength)
   }
 
   setVerticalRate() {
-    const Editor = this.Editor
-    const contentAllHeight = Editor.textPerLine.length * Editor.lineHeight + Editor.editorHeight - Editor.lineHeight
-    Editor.scrollBarInfo.verticalRate = (contentAllHeight - Editor.editorHeight) / (Editor.editorHeight - Editor.scrollBarInfo.verticalScrollLength)
+    const { textPerLine, lineHeight, editorHeight, scrollBarInfo } = this.Editor
+    const contentAllHeight = textPerLine.length * lineHeight + editorHeight - lineHeight
+    scrollBarInfo.verticalRate = (contentAllHeight - editorHeight) / (editorHeight - scrollBarInfo.verticalScrollLength)
   }
 
   scrollWheel(e) {
-    const Editor = this.Editor
+    const { scrollBarInfo, editorHeight, editorWidth, gutterWidth } = this.Editor
 
-    if (e.deltaY !== 0 && Editor.scrollBarInfo.verticalScrollLength !== 0) {
-      const top = Editor.scrollBarInfo.verticalScrollTop + e.deltaY * 0.8
+    if (e.deltaY !== 0 && scrollBarInfo.verticalScrollLength !== 0) {
+      const top = scrollBarInfo.verticalScrollTop + e.deltaY * scrollBarInfo.scrollRate
       let nextTop = top
-      if (top + Editor.scrollBarInfo.verticalScrollLength > Editor.editorHeight) {
-        nextTop = Editor.editorHeight - Editor.scrollBarInfo.verticalScrollLength
+      if (top + scrollBarInfo.verticalScrollLength > editorHeight) {
+        nextTop = editorHeight - scrollBarInfo.verticalScrollLength
       } else if (top < 0) {
         nextTop = 0
       } else {
@@ -177,13 +180,13 @@ export default class scrollBar {
 
       this.moveVertical(nextTop)
     }
-    console.log(e)
-    if (e.deltaX !== 0 && Editor.scrollBarInfo.horizonScrollLength !== 0) {
-      const left = Editor.scrollBarInfo.horizonScrollLeft + e.deltaX * 0.8
+ 
+    if (e.deltaX !== 0 && scrollBarInfo.horizonScrollLength !== 0) {
+      const left = scrollBarInfo.horizonScrollLeft + e.deltaX * scrollBarInfo.scrollRate
       let nextLeft = left
 
-      if (left + Editor.scrollBarInfo.horizonScrollLength > Editor.editorWidth - Editor.gutterWidth) {
-        nextLeft = Editor.editorWidth - Editor.gutterWidth - Editor.scrollBarInfo.horizonScrollLength
+      if (left + scrollBarInfo.horizonScrollLength > editorWidth - gutterWidth) {
+        nextLeft = editorWidth - gutterWidth - scrollBarInfo.horizonScrollLength
       } else if (left < 0) {
         nextLeft = 0
       } else {
@@ -196,27 +199,27 @@ export default class scrollBar {
   }
 
   scrollHorizonMouse(me, startPos, e) {
-    const Editor = me.Editor
-    let mousePos = e.clientX - Editor.editorLeft - Editor.gutterWidth
+    const { editorLeft, gutterWidth, scrollBarInfo, editorWidth, editorHeight } = me.Editor
+    let mousePos = e.clientX - editorLeft - gutterWidth
     let nextLeft
   
     if (startPos === null) {
       if (e.target.className === 'JSHorizonScrollSlider') {
-        nextLeft = Editor.scrollBarInfo.horizonScrollLeft
+        nextLeft = scrollBarInfo.horizonScrollLeft
       } else {
-        nextLeft = mousePos - Editor.scrollBarInfo.horizonScrollLength / 2
+        nextLeft = mousePos - scrollBarInfo.horizonScrollLength / 2
 
-        if (nextLeft + Editor.scrollBarInfo.horizonScrollLength > Editor.editorWidth - Editor.gutterWidth) {
-          nextLeft = Editor.editorWidth - Editor.gutterWidth - Editor.scrollBarInfo.horizonScrollLength
+        if (nextLeft + scrollBarInfo.horizonScrollLength > editorWidth - gutterWidth) {
+          nextLeft = editorWidth - gutterWidth - scrollBarInfo.horizonScrollLength
         } else if (nextLeft < 0) {
           nextLeft = 0
         }
       }
     } else {
-      nextLeft = Editor.scrollBarInfo.horizonScrollLeft + e.clientX - startPos.X
+      nextLeft = scrollBarInfo.horizonScrollLeft + e.clientX - startPos.X
 
-      if (nextLeft + Editor.scrollBarInfo.horizonScrollLength > Editor.editorWidth - Editor.gutterWidth) {
-        nextLeft = Editor.editorHeight - Editor.gutterWidth - Editor.scrollBarInfo.horizonScrollLength
+      if (nextLeft + scrollBarInfo.horizonScrollLength > editorWidth - gutterWidth) {
+        nextLeft = editorHeight - gutterWidth - scrollBarInfo.horizonScrollLength
       } else if (nextLeft < 0) {
         nextLeft = 0
       }
@@ -227,27 +230,27 @@ export default class scrollBar {
   }
 
   scrollVerticalMouse(me, startPos, e) {
-    const Editor = me.Editor
-    let mousePos = e.clientY - Editor.editorTop
+    const { editorTop, scrollBarInfo, editorHeight } = me.Editor
+    let mousePos = e.clientY - editorTop
     let nextTop
   
     if (startPos === null) {
       if (e.target.className === 'JSVerticalScrollSlider') {
-        nextTop = Editor.scrollBarInfo.verticalScrollTop
+        nextTop = scrollBarInfo.verticalScrollTop
       } else {
-        nextTop = mousePos - Editor.scrollBarInfo.verticalScrollLength / 2
+        nextTop = mousePos - scrollBarInfo.verticalScrollLength / 2
 
-        if (nextTop + Editor.scrollBarInfo.verticalScrollLength > Editor.editorHeight) {
-          nextTop = Editor.editorHeight - Editor.scrollBarInfo.verticalScrollLength
+        if (nextTop + scrollBarInfo.verticalScrollLength > editorHeight) {
+          nextTop = editorHeight - scrollBarInfo.verticalScrollLength
         } else if (nextTop < 0) {
           nextTop = 0
         }
       }
     } else {
-      nextTop = Editor.scrollBarInfo.verticalScrollTop + e.clientY - startPos.Y
+      nextTop = scrollBarInfo.verticalScrollTop + e.clientY - startPos.Y
 
-      if (nextTop + Editor.scrollBarInfo.verticalScrollLength > Editor.editorHeight) {
-        nextTop = Editor.editorHeight - Editor.scrollBarInfo.verticalScrollLength
+      if (nextTop + scrollBarInfo.verticalScrollLength > editorHeight) {
+        nextTop = editorHeight - scrollBarInfo.verticalScrollLength
       } else if (nextTop < 0) {
         nextTop = 0
       }
@@ -258,29 +261,31 @@ export default class scrollBar {
   }
 
   moveHorizon(left) {
-    const Editor = this.Editor
+    const { JSHorizonScrollSlider, JSLineWrapper, scrollBarInfo, cursor } = this.Editor
 
-    css(Editor.JSHorizonScrollSlider, {
+    css(JSHorizonScrollSlider, {
       left: left + 'px'
     })
-    css(Editor.JSLineWrapper, {
-      left: -left * Editor.scrollBarInfo.horizonRate + 'px'
+    css(JSLineWrapper, {
+      left: -left * scrollBarInfo.horizonRate + 'px'
     })
-    Editor.scrollBarInfo.horizonScrollLeft = left
+    scrollBarInfo.horizonScrollLeft = left
+    cursor.moveCursor()
   }
 
   moveVertical(top) {
-    const Editor = this.Editor
+    const { JSVerticalScrollSlider, JSGutterWrapper, scrollBarInfo, JSLineWrapper, cursor } = this.Editor
 
-    css(Editor.JSVerticalScrollSlider, {
+    css(JSVerticalScrollSlider, {
       top: top + 'px'
     })
-    css(Editor.JSGutterWrapper, {
-      top: -top * Editor.scrollBarInfo.verticalRate + 'px'
+    css(JSGutterWrapper, {
+      top: -top * scrollBarInfo.verticalRate + 'px'
     })
-    css(Editor.JSLineWrapper, {
-      top: -top * Editor.scrollBarInfo.verticalRate + 'px'
+    css(JSLineWrapper, {
+      top: -top * scrollBarInfo.verticalRate + 'px'
     })
-    Editor.scrollBarInfo.verticalScrollTop = top
+    scrollBarInfo.verticalScrollTop = top
+    cursor.moveCursor()
   }
 }
