@@ -1,5 +1,5 @@
 import { css } from './utils'
-import { fromEvent, empty } from 'rxjs'
+import { fromEvent } from 'rxjs'
 import { takeUntil, map, concatAll, take } from 'rxjs/operators'
 import './content.scss'
 
@@ -52,8 +52,6 @@ export default class JSContent {
 
     mousewheel.subscribe(e => {
       Editor.scrollBar.scrollWheel(e)
-      e.preventDefault()
-      e.stopPropagation()
     })
 
     Editor.JSEditor.appendChild(JSContent)

@@ -53,5 +53,6 @@ export default {
     'a',
     'a'
   ],
-  gutterWidth: 60
+  gutterWidth: 60,
+  scrollThickness: 10
 }
