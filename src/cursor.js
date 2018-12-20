@@ -1,4 +1,5 @@
 import { css } from './utils'
+import { interval } from 'rxjs'
 import './cursor.scss'
 
 export default class Cursor {
@@ -20,13 +21,18 @@ export default class Cursor {
   }
 
   moveCursor(left, top) {
-    !isNaN(left) || (left = this.Editor.cursorInfo.left)
-    !isNaN(top) || (top = this.Editor.cursorInfo.top)
-    
-    let nextLeft = left - this.Editor.scrollBarInfo.horizonScrollLeft * this.Editor.scrollBarInfo.horizonRate
-    let nextTop = top - this.Editor.scrollBarInfo.verticalScrollTop * this.Editor.scrollBarInfo.verticalRate
- 
-    css(this.Editor.JSCursor, {
+    const { cursorInfo, scrollBarInfo, lineHeight, JSCursor } = this.Editor
+    !isNaN(left) || (left = cursorInfo.left)
+    !isNaN(top) || (top = cursorInfo.top)
+    // console.log(left)
+    // console.log(top)
+    let nextLeft = left - scrollBarInfo.horizonScrollLeft * scrollBarInfo.horizonRate
+    let nextTop = top - scrollBarInfo.verticalScrollTop * scrollBarInfo.verticalRate
+    // console.log(nextLeft)
+    // console.log(nextTop)
+    nextLeft < 60 || nextTop + lineHeight < 0 ? this.hideCursor() : this.showCursor()
+
+    css(JSCursor, {
       left: nextLeft + 'px',
       top: nextTop + 'px'
     })
@@ -45,19 +51,23 @@ export default class Cursor {
     const { textPerLine, gutterWidth, lineHeight } = this.Editor,
       lineTxt = textPerLine[lineIndex],
       top = lineHeight * lineIndex
-     
+
     this.moveCursor(gutterWidth + this.Editor.getTargetWidth(lineTxt), top)
   }
 
   moveToClickPoint(e) {
-    const { editorTop, lineHeight, JSEditor, cursor, gutterWidth } = this.Editor
-    const curLine = Math.max(Math.floor((e.clientY - editorTop) / lineHeight), 0),
+    const { editorTop, lineHeight, JSEditor, cursor, gutterWidth, scrollBarInfo } = this.Editor
+    const curLine = Math.max(
+        Math.floor((e.clientY + scrollBarInfo.verticalScrollTop * scrollBarInfo.verticalRate - editorTop) / lineHeight),
+        0
+      ),
       clientY = curLine * lineHeight + lineHeight / 2,
       range = document.caretRangeFromPoint(e.clientX, clientY + editorTop),
       endContainer = range.endContainer
-   
+    console.log(endContainer.TEXT_NODE)
+    console.log('curLine = ' + curLine)
     if (JSEditor.contains(e.target)) {
-      if (endContainer.nodeType === 3) {
+      if (endContainer.nodeType === endContainer.TEXT_NODE) {
         const parentNode = endContainer.parentNode
         if (parentNode.className === 'JSGutter') {
           this.moveToLineStart(curLine)
@@ -66,9 +76,41 @@ export default class Cursor {
             width = this.Editor.getTargetWidth(txt)
           cursor.moveCursor(width + gutterWidth + parentNode.offsetLeft, curLine * lineHeight)
         }
-      } else {}
+      } else {
+      }
     } else {
       this.moveToLineStart(curLine)
     }
+  }
+
+  showCursor() {
+    const { JSCursor } = this.Editor
+    css(JSCursor, {
+      display: 'block'
+    })
+
+    this.clearTimer()
+    this.timer = interval(500).subscribe(num => {
+      if (num % 2 === 0) {
+        css(JSCursor, {
+          display: 'none'
+        })
+      } else {
+        css(JSCursor, {
+          display: 'block'
+        })
+      }
+    })
+  }
+
+  hideCursor() {
+    css(this.Editor.JSCursor, {
+      display: 'none'
+    })
+    this.clearTimer()
+  }
+
+  clearTimer() {
+    this.timer && this.timer.unsubscribe()
   }
 }

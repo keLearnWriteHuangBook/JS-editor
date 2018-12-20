@@ -25,18 +25,14 @@ export default class JSContent {
         map(e => {
           //判断是否激活Editor
           if (Editor.JSEditor.contains(e.target)) {
-            css(Editor.JSCursor, {
-              display: 'block'
-            })
+            Editor.cursor.showCursor()
             Editor.cursor.moveToClickPoint(e)
             // 必须阻止默认事件，否则输入框无法聚焦
             e.preventDefault()
             Editor.JSTextarea.focus()
             return mousemove.pipe(takeUntil(mouseup))
           } else {
-            css(Editor.JSCursor, {
-              display: 'none'
-            })
+            Editor.cursor.hideCursor()
             return mousemove.pipe(take(0))
           }
         }),
@@ -61,6 +57,7 @@ export default class JSContent {
     const Editor = this.Editor,
       { gutterWidth, JSContent } = Editor
 
+    const fragment = document.createDocumentFragment()
     const JSGutterWrapper = document.createElement('div')
     Editor.JSGutterWrapper = JSGutterWrapper
     JSGutterWrapper.className = 'JSGutterWrapper'
@@ -71,23 +68,48 @@ export default class JSContent {
     const contentWidth = JSContent.getBoundingClientRect().width
     JSLineWrapperHidden.style = `width:${contentWidth - gutterWidth}px`
 
+    const JSLineWrapperBackground = document.createElement('div')
+    JSLineWrapperBackground.className = 'JSLineWrapperBackground'
+    JSLineWrapperHidden.appendChild(JSLineWrapperBackground)
+
     const JSLineWrapper = document.createElement('div')
     Editor.JSLineWrapper = JSLineWrapper
     JSLineWrapper.className = 'JSLineWrapper'
-    JSLineWrapperHidden.appendChild(JSLineWrapper)
+    JSLineWrapperBackground.appendChild(JSLineWrapper)
 
-    let gutterHtml = '',
-      contentHtml = ''
-    Editor.textPerLine.forEach((item, index) => {
-      gutterHtml += `<div class="JSGutter">${index}</div>`
-      contentHtml += `<div class="JSLine">${item}</div>`
-    })
+    Editor.textPerLine.forEach((it, index) => {
+      const JSGutter = document.createElement('div')	
+      JSGutter.className = 'JSGutter'
+      css(JSGutter, {
+        width: Editor.gutterWidth + 'px'
+      })	    
+      JSGutter.innerText = index	   
+      JSGutterWrapper.appendChild(JSGutter)	 
 
-    JSGutterWrapper.innerHTML = gutterHtml
-    JSLineWrapper.innerHTML = contentHtml
+      const JSLine = document.createElement('div')
+      JSLine.className = 'JSLine'
+      const JSLineSpan = document.createElement('span')
+      JSLineSpan.className = 'JSLineSpan'
 
-    JSContent.appendChild(JSGutterWrapper)
-    JSContent.appendChild(JSLineWrapperHidden)
+      const test2 = document.createElement('span')
+      test2.innerText = it	
+      JSLineSpan.appendChild(test2)
+
+      const test = document.createElement('span')
+      test.innerHTML = '试试'
+      JSLineSpan.appendChild(test)
+
+      const test1 = document.createElement('span')
+      test1.innerHTML = '试试大叔大婶'
+      test.appendChild(test1)
+
+      JSLine.appendChild(JSLineSpan)
+      JSLineWrapper.appendChild(JSLine)
+    })   
+
+    fragment.appendChild(JSGutterWrapper)
+    fragment.appendChild(JSLineWrapperHidden)
+    Editor.JSContent.appendChild(fragment)
     Editor.scrollBar.setScrollWidth()
   }
 }

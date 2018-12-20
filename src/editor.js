@@ -41,7 +41,7 @@ export default class Editor {
   initComWidthEl() {
     const el = document.createElement('div')
     el.style = `position:absolute;white-space:nowrap;visibility:hidden;font-size:${this.fontSize}px`
-    document.body.appendChild(el)
+    this.JSEditor.appendChild(el)
     this.comWidthEl = el
   }
   getTargetWidth(target) {
