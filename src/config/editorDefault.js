@@ -7,9 +7,10 @@ export default {
   },
   textPerLine: [
     '4反倒是===23423 423 432423',
-    '大叔大婶<spa\<span\>8953453453453453453453453453453453453453453489</span>n>==----=呵呵</spann><span>呵呵</span><span>呵呵</span><span>呵呵</span><span>呵呵</span><span>呵呵</span>',
+    '大叔大婶<span>8953453453453453453453453453453453453453453489</span>==----=呵呵结束',
     '可d',
     'ᄀ',
+    '   a',
     'a',
     'a',
     'a',
@@ -31,6 +32,17 @@ export default {
     'a',
     'a',
     'a',
+    '3',
+    '36',
+    'a',
+    'a',
+    'a',
+    'a',
+    'a',
+    'a',
+    '35',
+    '36',
+    '37',
     'a',
     'a',
     'a',
@@ -39,20 +51,14 @@ export default {
     'a',
     'a',
     'a',
-    'a',
-    'a',
-    'a',
-    'a',
-    'a',
-    'a',
-    'a',
-    'a',
-    'a',
-    'a',
-    'a',
-    'a',
-    'a'
+    'ceshi'
   ],
   gutterWidth: 60,
-  scrollThickness: 10
+  scrollThickness: 10,
+  contentInfo: {
+    height: 0,
+    width: 0,
+    maxWidthLine: null,
+    rightGap: 20
+  }
 }

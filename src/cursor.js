@@ -21,7 +21,7 @@ export default class Cursor {
   }
 
   moveCursor(left, top) {
-    const { cursorInfo, scrollBarInfo, lineHeight, JSCursor } = this.Editor
+    const { cursorInfo, scrollBarInfo, lineHeight, JSCursor, gutterWidth } = this.Editor
     !isNaN(left) || (left = cursorInfo.left)
     !isNaN(top) || (top = cursorInfo.top)
     // console.log(left)
@@ -30,15 +30,16 @@ export default class Cursor {
     let nextTop = top - scrollBarInfo.verticalScrollTop * scrollBarInfo.verticalRate
     // console.log(nextLeft)
     // console.log(nextTop)
-    nextLeft < 60 || nextTop + lineHeight < 0 ? this.hideCursor() : this.showCursor()
-
+    nextLeft < gutterWidth || nextTop + lineHeight < 0 ? this.hideCursor() : this.showCursor()
+ 
     css(JSCursor, {
       left: nextLeft + 'px',
       top: nextTop + 'px'
     })
     this.Editor.cursorInfo = {
       left,
-      top
+      top,
+      cursorLineIndex: top / lineHeight
     }
   }
 
@@ -53,34 +54,6 @@ export default class Cursor {
       top = lineHeight * lineIndex
 
     this.moveCursor(gutterWidth + this.Editor.getTargetWidth(lineTxt), top)
-  }
-
-  moveToClickPoint(e) {
-    const { editorTop, lineHeight, JSEditor, cursor, gutterWidth, scrollBarInfo } = this.Editor
-    const curLine = Math.max(
-        Math.floor((e.clientY + scrollBarInfo.verticalScrollTop * scrollBarInfo.verticalRate - editorTop) / lineHeight),
-        0
-      ),
-      clientY = curLine * lineHeight + lineHeight / 2,
-      range = document.caretRangeFromPoint(e.clientX, clientY + editorTop),
-      endContainer = range.endContainer
-    console.log(endContainer.TEXT_NODE)
-    console.log('curLine = ' + curLine)
-    if (JSEditor.contains(e.target)) {
-      if (endContainer.nodeType === endContainer.TEXT_NODE) {
-        const parentNode = endContainer.parentNode
-        if (parentNode.className === 'JSGutter') {
-          this.moveToLineStart(curLine)
-        } else {
-          const txt = parentNode.innerText.slice(0, range.endOffset),
-            width = this.Editor.getTargetWidth(txt)
-          cursor.moveCursor(width + gutterWidth + parentNode.offsetLeft, curLine * lineHeight)
-        }
-      } else {
-      }
-    } else {
-      this.moveToLineStart(curLine)
-    }
   }
 
   showCursor() {

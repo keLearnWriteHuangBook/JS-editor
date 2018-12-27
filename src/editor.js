@@ -39,8 +39,8 @@ export default class Editor {
     this.content = new Content(this)
   }
   initComWidthEl() {
-    const el = document.createElement('div')
-    el.style = `position:absolute;white-space:nowrap;visibility:hidden;font-size:${this.fontSize}px`
+    const el = document.createElement('pre')
+    el.style = `position:absolute;visibility:hidden;font-size:${this.fontSize}px`
     this.JSEditor.appendChild(el)
     this.comWidthEl = el
   }
@@ -53,5 +53,15 @@ export default class Editor {
     }
     this.comWidthEl.innerText = txt
     return this.comWidthEl.getBoundingClientRect().width
+  }
+  getPreviousTextLength(target) {
+    let length = 0
+    let dom = target.previousSibling
+    while(dom !== null) {
+      length += dom.innerText.length
+      dom = dom.previousSibling
+    }
+
+    return length
   }
 }

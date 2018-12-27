@@ -14,7 +14,8 @@ export default class scrollBar {
       horizonScrollLeft: 0,
       horizonScrollLength: 0,
       horizonRate: 0,
-      scrollRate: 0.5
+      scrollRate: 0.5,//mousewheel事件中 delta与实际的移动比例,
+      mouseScroll: false //是否处于鼠标点击滚动中
     }
 
     this.createScroll()
@@ -56,9 +57,10 @@ export default class scrollBar {
     mousedown
       .pipe(
         map(e => {
+          e.stopPropagation()
           startPos.X = e.clientX
           me.scrollHorizonMouse(me, null, e)
-
+         
           return mousemove.pipe(takeUntil(mouseup))
         }),
         concatAll()
@@ -96,9 +98,10 @@ export default class scrollBar {
     mousedown
       .pipe(
         map(e => {
+          e.stopPropagation()
           startPos.Y = e.clientY
           me.scrollVerticalMouse(me, null, e)
-          
+          Editor.scrollBarInfo.mouseScroll = true
           return mousemove.pipe(takeUntil(mouseup))
         }),
         concatAll()
@@ -208,7 +211,7 @@ export default class scrollBar {
         nextLeft = scrollBarInfo.horizonScrollLeft
       } else {
         nextLeft = mousePos - scrollBarInfo.horizonScrollLength / 2
-
+        console.log('nextLeft' + nextLeft)
         if (nextLeft + scrollBarInfo.horizonScrollLength > editorWidth - gutterWidth) {
           nextLeft = editorWidth - gutterWidth - scrollBarInfo.horizonScrollLength
         } else if (nextLeft < 0) {
@@ -217,15 +220,15 @@ export default class scrollBar {
       }
     } else {
       nextLeft = scrollBarInfo.horizonScrollLeft + e.clientX - startPos.X
-
+      console.log('nextLeft' + nextLeft)
       if (nextLeft + scrollBarInfo.horizonScrollLength > editorWidth - gutterWidth) {
-        nextLeft = editorHeight - gutterWidth - scrollBarInfo.horizonScrollLength
+        nextLeft = editorWidth - gutterWidth - scrollBarInfo.horizonScrollLength
       } else if (nextLeft < 0) {
         nextLeft = 0
       }
       startPos.X = e.clientX
     }
-
+    console.log(nextLeft)
     me.moveHorizon(nextLeft)
   }
 
@@ -262,7 +265,7 @@ export default class scrollBar {
 
   moveHorizon(left) {
     const { JSHorizonScrollSlider, JSLineWrapper, scrollBarInfo, cursor } = this.Editor
-
+    console.log(left)
     css(JSHorizonScrollSlider, {
       left: left + 'px'
     })
@@ -274,7 +277,7 @@ export default class scrollBar {
   }
 
   moveVertical(top) {
-    const { JSVerticalScrollSlider, JSGutterWrapper, scrollBarInfo, JSLineWrapper, cursor } = this.Editor
+    const { JSVerticalScrollSlider, JSGutterWrapper, scrollBarInfo, JSLineWrapper, cursor, content } = this.Editor
 
     css(JSVerticalScrollSlider, {
       top: top + 'px'
@@ -287,5 +290,6 @@ export default class scrollBar {
     })
     scrollBarInfo.verticalScrollTop = top
     cursor.moveCursor()
+    content.renderLine()
   }
 }
