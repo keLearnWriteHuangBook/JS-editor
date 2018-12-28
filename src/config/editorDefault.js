@@ -1,4 +1,5 @@
 export default {
+  isActive: false,
   fontSize: 14,
   lineHeight: 20,
   theme: {

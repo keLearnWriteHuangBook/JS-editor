@@ -31,9 +31,11 @@ export default class JSContent {
             // 必须阻止默认事件，否则输入框无法聚焦
             e.preventDefault()
             Editor.JSTextarea.focus()
+            Editor.isActive = true
             return mousemove.pipe(takeUntil(mouseup))
           } else {
             Editor.cursor.hideCursor()
+            Editor.isActive = false
             return mousemove.pipe(take(0))
           }
         }),
@@ -46,7 +48,8 @@ export default class JSContent {
         Editor.scrollBarInfo.mouseScroll = false
         return
       }
-      me.moveToClickPoint(e, 'up')})
+      me.moveToClickPoint(e, 'up')
+    })
 
     const mousewheel = fromEvent(JSContent, 'mousewheel')
 
@@ -56,9 +59,11 @@ export default class JSContent {
 
     const keydown = fromEvent(document, 'keydown')
 
-    keydown.pipe(filter(e => e.keyCode === 38 || e.keyCode === 40)).subscribe(e => {
-      console.log(Editor.cursorInfo)
-    })
+    keydown
+      .pipe(
+        filter(e => (e.keyCode === 38 || e.keyCode === 40 || e.keyCode === 37 || e.keyCode === 39) && Editor.isActive)
+      )
+      .subscribe(e => me.directionKey(e))
 
     Editor.JSEditor.appendChild(JSContent)
     this.initFramework()
@@ -84,27 +89,28 @@ export default class JSContent {
       endContainer = range.endContainer
 
     if (JSEditor.contains(e.target)) {
+      let cursorStrIndex = null
       if (endContainer.nodeType === endContainer.TEXT_NODE) {
         const parentNode = endContainer.parentNode
         if (parentNode.className === 'JSGutter') {
+          cursorStrIndex = 0
           cursor.moveToLineStart(curLine)
         } else {
           const previousTextLength = this.Editor.getPreviousTextLength(parentNode)
-          const length = previousTextLength + range.endOffset
+          cursorStrIndex = previousTextLength + range.endOffset
 
-          this.Editor.cursorInfo.length = length
-
-          const txt = textPerLine[curLine].slice(0, length),
+          const txt = textPerLine[curLine].slice(0, cursorStrIndex),
             width = this.Editor.getTargetWidth(txt)
 
           cursor.moveCursor(width + gutterWidth + parentNode.offsetLeft, curLine * lineHeight)
         }
       } else {
         if (curLine > textPerLine.length - 1) {
+          cursorStrIndex = textPerLine[curLine].length
           cursor.moveToLineEnd(textPerLine.length - 1)
         }
       }
-
+      cursor.setCursorStrIndex(cursorStrIndex)
       if (
         horizonScrollLeft * horizonRate + gutterWidth > this.Editor.cursorInfo.left &&
         !JSHorizonScroll.contains(e.target) &&
@@ -120,6 +126,38 @@ export default class JSContent {
     } else {
       // this.moveToLineStart(curLine)
     }
+  }
+
+  directionKey(e) {
+    const Editor = this.Editor
+    const { cursorInfo, textPerLine, cursor, gutterWidth, lineHeight } = Editor
+
+    let cursorStrIndex = cursorInfo.cursorStrIndex
+    let cursorLineIndex = cursorInfo.cursorLineIndex
+
+    if (e.keyCode === 38) {
+      cursorLineIndex -= 1
+    } else if (e.keyCode === 40) {
+      cursorLineIndex += 1
+    } else if (e.keyCode === 37) {
+      cursorStrIndex -= 1
+    } else if (e.keyCode === 39) {
+      cursorStrIndex += 1
+    }
+  
+    if (
+      cursorLineIndex < 0 ||
+      cursorLineIndex >= textPerLine.length ||
+      cursorStrIndex < 0 ||
+      cursorStrIndex > textPerLine[cursorInfo.cursorLineIndex].length
+    ) {
+      return
+    }
+    const txt = textPerLine[cursorLineIndex].slice(0, cursorStrIndex)
+    const width = Editor.getTargetWidth(txt)
+
+    cursor.moveCursor(width + gutterWidth, cursorLineIndex * lineHeight)
+    cursor.setCursorStrIndex(txt.length)
   }
 
   initFramework() {
@@ -163,6 +201,7 @@ export default class JSContent {
     Editor.JSContent.appendChild(fragment)
     Editor.scrollBar.setScrollWidth()
   }
+
   renderLine() {
     const Editor = this.Editor
     const { scrollBarInfo, editorHeight, lineHeight, textPerLine } = Editor
@@ -209,6 +248,7 @@ export default class JSContent {
     Editor.JSLineWrapper.innerHTML = ''
     Editor.JSLineWrapper.appendChild(fragment)
   }
+
   setLineWrapperHeight() {
     const height = this.Editor.textPerLine.length * this.Editor.lineHeight
     css(this.Editor.JSLineWrapper, {
@@ -217,6 +257,7 @@ export default class JSContent {
 
     this.Editor.contentInfo.height = height
   }
+
   setLineWrapperWidth() {
     const { textPerLine, contentInfo } = this.Editor
     let maxWidth = 0,
