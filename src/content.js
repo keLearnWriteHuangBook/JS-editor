@@ -1,6 +1,6 @@
 import { css } from './utils'
-import { fromEvent } from 'rxjs'
-import { takeUntil, map, concatAll, take, filter } from 'rxjs/operators'
+import { fromEvent, of } from 'rxjs'
+import { takeUntil, map, concatAll, take, filter, tap } from 'rxjs/operators'
 import './content.scss'
 
 export default class JSContent {
@@ -130,34 +130,101 @@ export default class JSContent {
 
   directionKey(e) {
     const Editor = this.Editor
-    const { cursorInfo, textPerLine, cursor, gutterWidth, lineHeight } = Editor
+    const {
+      cursorInfo,
+      textPerLine,
+      cursor,
+      gutterWidth,
+      lineHeight,
+      scrollBarInfo,
+      JSHorizonScroll,
+      scrollBar,
+      editorHeight,
+      editorWidth
+    } = Editor
+    const { horizonScrollLeft, horizonRate, verticalScrollTop, verticalRate } = scrollBarInfo
 
     let cursorStrIndex = cursorInfo.cursorStrIndex
     let cursorLineIndex = cursorInfo.cursorLineIndex
 
-    if (e.keyCode === 38) {
-      cursorLineIndex -= 1
-    } else if (e.keyCode === 40) {
-      cursorLineIndex += 1
-    } else if (e.keyCode === 37) {
-      cursorStrIndex -= 1
-    } else if (e.keyCode === 39) {
-      cursorStrIndex += 1
-    }
-  
-    if (
-      cursorLineIndex < 0 ||
-      cursorLineIndex >= textPerLine.length ||
-      cursorStrIndex < 0 ||
-      cursorStrIndex > textPerLine[cursorInfo.cursorLineIndex].length
-    ) {
-      return
-    }
-    const txt = textPerLine[cursorLineIndex].slice(0, cursorStrIndex)
-    const width = Editor.getTargetWidth(txt)
+    of(e)
+      .pipe(
+        filter(e => {
+          if (e.keyCode === 38) {
+            cursorLineIndex -= 1
+          } else if (e.keyCode === 40) {
+            cursorLineIndex += 1
+          } else if (e.keyCode === 37) {
+            cursorStrIndex -= 1
+          } else if (e.keyCode === 39) {
+            cursorStrIndex += 1
+          }
 
-    cursor.moveCursor(width + gutterWidth, cursorLineIndex * lineHeight)
-    cursor.setCursorStrIndex(txt.length)
+          if (cursorLineIndex < 0 || cursorLineIndex >= textPerLine.length) {
+            return false
+          }
+          if (cursorStrIndex < 0) {
+            if (cursorLineIndex === 0) {
+              return false
+            } else {
+              cursorLineIndex -= 1
+              cursorStrIndex = textPerLine[cursorLineIndex].length
+            }
+            //这里需使用cursorInfo.cursorLineIndex而不是使用cursorLineIndex
+          } else if (cursorStrIndex > textPerLine[cursorInfo.cursorLineIndex].length) {
+            if (cursorLineIndex >= textPerLine.length - 1) {
+              return false
+            } else {
+              cursorLineIndex += 1
+              cursorStrIndex = 0
+            }
+          }
+          return true
+        }),
+        tap(e => {
+           const txt = textPerLine[cursorLineIndex].slice(0, cursorStrIndex)
+          const width = Editor.getTargetWidth(txt)
+
+          cursor.moveCursor(width + gutterWidth, cursorLineIndex * lineHeight)
+          cursor.setCursorStrIndex(txt.length)
+        })
+      )
+      .subscribe(e => {
+        if (e.keyCode === 38) {
+          if (cursorInfo.top < verticalScrollTop * verticalRate) {
+            scrollBar.moveVertical((cursorInfo.top) / verticalRate)
+          }
+          if (cursorInfo.left - gutterWidth - 20 < horizonScrollLeft * horizonRate) {
+            scrollBar.moveHorizon(Math.max((cursorInfo.left - gutterWidth - 20) / horizonRate, 0))
+          }
+        } else if (e.keyCode === 40) {
+          if (cursorInfo.top >= verticalScrollTop * verticalRate + editorHeight) {
+            scrollBar.moveVertical(((cursorLineIndex + 1) * lineHeight - editorHeight) / verticalRate)
+          }
+          if (cursorInfo.left - gutterWidth - 20 < horizonScrollLeft * horizonRate) {
+            scrollBar.moveHorizon(Math.max((cursorInfo.left - gutterWidth - 20) / horizonRate, 0))
+          }
+        } else if (e.keyCode === 37) {
+          if (cursorInfo.left - gutterWidth - 20 < horizonScrollLeft * horizonRate) {
+            scrollBar.moveHorizon(Math.max((cursorInfo.left - gutterWidth - 20) / horizonRate, 0))
+          } else if (cursorInfo.left > horizonScrollLeft * horizonRate + editorWidth) {
+            scrollBar.moveHorizon((cursorInfo.left - editorWidth + 20) / horizonRate)
+            if (cursorInfo.top < verticalScrollTop * verticalRate) {
+              scrollBar.moveVertical((cursorInfo.top) / verticalRate)
+            }
+          }
+        } else if (e.keyCode === 39) {
+          if (cursorInfo.left > horizonScrollLeft * horizonRate + editorWidth - 20) {
+            scrollBar.moveHorizon((cursorInfo.left - editorWidth + 20) / horizonRate)
+          } else if (cursorInfo.left - gutterWidth < horizonScrollLeft * horizonRate) {
+            scrollBar.moveHorizon((cursorInfo.left - gutterWidth) / horizonRate)
+          }
+        
+          if (cursorInfo.top >= verticalScrollTop * verticalRate + editorHeight) {
+            scrollBar.moveVertical(((cursorLineIndex + 1) * lineHeight - editorHeight) / verticalRate)
+          }
+        }
+      })
   }
 
   initFramework() {
