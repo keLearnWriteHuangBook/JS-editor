@@ -5,12 +5,6 @@ import './cursor.scss'
 export default class Cursor {
   constructor(Editor) {
     this.Editor = Editor
-    Editor.cursorInfo = {
-      left: 0,
-      top: 0,
-      cursorStrIndex: null,
-      cursorLineIndex: null
-    }
 
     this.createCursor()
   }
@@ -38,6 +32,7 @@ export default class Cursor {
       left: nextLeft + 'px',
       top: nextTop + 'px'
     })
+    this.Editor.textarea.moveTextarea(nextLeft, nextTop)
     this.Editor.cursorInfo.left = left
     this.Editor.cursorInfo.top = top
     this.Editor.cursorInfo.cursorLineIndex = top / lineHeight

@@ -9,12 +9,13 @@ export default {
   textPerLine: [
     '4反倒是===23423 423 432423',
     '大叔大婶<span>8953453453453453453453453453453453453453453489</span>==----=呵呵结束',
-    '可d可d可d可d可d',
+    '可d可d可d可d',
     'ᄀ',
     '   a',
     'a',
     'a',
     'a',
+    '',
     'a',
     'a',
     'a',
@@ -61,5 +62,11 @@ export default {
     width: 0,
     maxWidthLine: null,
     rightGap: 20
+  },
+  cursorInfo: {
+    left: 0,
+    top: 0,
+    cursorStrIndex: null,
+    cursorLineIndex: null
   }
 }

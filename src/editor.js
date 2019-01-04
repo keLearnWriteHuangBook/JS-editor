@@ -32,6 +32,8 @@ export default class Editor {
     this.editorLeft = JSEditorInfo.left
     this.editorWidth = JSEditorInfo.width
     this.editorHeight = JSEditorInfo.height
+    this.copyTextPerLine = this.textPerLine.concat([])
+    this.copyCursorInfo = Object.assign({}, this.cursorInfo)
     this.initComWidthEl()
     this.textarea = new Textarea(this)
     this.cursor = new Cursor(this)

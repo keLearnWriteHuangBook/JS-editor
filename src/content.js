@@ -71,6 +71,7 @@ export default class JSContent {
 
   moveToClickPoint(e, way) {
     const Editor = this.Editor
+    Editor.textarea.preInputAction()
     const {
       editorTop,
       lineHeight,
@@ -87,7 +88,7 @@ export default class JSContent {
       clientY = curLine * lineHeight + lineHeight / 2 - verticalScrollTop * verticalRate,
       range = document.caretRangeFromPoint(e.clientX, clientY + editorTop),
       endContainer = range.endContainer
-
+    console.log(endContainer)
     if (JSEditor.contains(e.target)) {
       let cursorStrIndex = null
       if (endContainer.nodeType === endContainer.TEXT_NODE) {
@@ -105,9 +106,17 @@ export default class JSContent {
           cursor.moveCursor(width + gutterWidth + parentNode.offsetLeft, curLine * lineHeight)
         }
       } else {
+        console.log(1)
+        console.log(curLine)
+        console.log(textPerLine.length - 1)
         if (curLine > textPerLine.length - 1) {
-          cursorStrIndex = textPerLine[curLine].length
+          cursorStrIndex = textPerLine[textPerLine.length - 1].length
           cursor.moveToLineEnd(textPerLine.length - 1)
+        }
+
+        if (endContainer.className === 'JSLine') {
+          cursorStrIndex = 0
+          cursor.moveToLineEnd(curLine)
         }
       }
       cursor.setCursorStrIndex(cursorStrIndex)
@@ -130,6 +139,7 @@ export default class JSContent {
 
   directionKey(e) {
     const Editor = this.Editor
+    Editor.textarea.preInputAction()
     const {
       cursorInfo,
       textPerLine,
@@ -182,7 +192,7 @@ export default class JSContent {
           return true
         }),
         tap(e => {
-           const txt = textPerLine[cursorLineIndex].slice(0, cursorStrIndex)
+          const txt = textPerLine[cursorLineIndex].slice(0, cursorStrIndex)
           const width = Editor.getTargetWidth(txt)
 
           cursor.moveCursor(width + gutterWidth, cursorLineIndex * lineHeight)
@@ -192,7 +202,7 @@ export default class JSContent {
       .subscribe(e => {
         if (e.keyCode === 38) {
           if (cursorInfo.top < verticalScrollTop * verticalRate) {
-            scrollBar.moveVertical((cursorInfo.top) / verticalRate)
+            scrollBar.moveVertical(cursorInfo.top / verticalRate)
           }
           if (cursorInfo.left - gutterWidth - 20 < horizonScrollLeft * horizonRate) {
             scrollBar.moveHorizon(Math.max((cursorInfo.left - gutterWidth - 20) / horizonRate, 0))
@@ -209,9 +219,10 @@ export default class JSContent {
             scrollBar.moveHorizon(Math.max((cursorInfo.left - gutterWidth - 20) / horizonRate, 0))
           } else if (cursorInfo.left > horizonScrollLeft * horizonRate + editorWidth) {
             scrollBar.moveHorizon((cursorInfo.left - editorWidth + 20) / horizonRate)
-            if (cursorInfo.top < verticalScrollTop * verticalRate) {
-              scrollBar.moveVertical((cursorInfo.top) / verticalRate)
-            }
+          }
+
+          if (cursorInfo.top < verticalScrollTop * verticalRate) {
+            scrollBar.moveVertical(cursorInfo.top / verticalRate)
           }
         } else if (e.keyCode === 39) {
           if (cursorInfo.left > horizonScrollLeft * horizonRate + editorWidth - 20) {
@@ -219,7 +230,7 @@ export default class JSContent {
           } else if (cursorInfo.left - gutterWidth < horizonScrollLeft * horizonRate) {
             scrollBar.moveHorizon((cursorInfo.left - gutterWidth) / horizonRate)
           }
-        
+
           if (cursorInfo.top >= verticalScrollTop * verticalRate + editorHeight) {
             scrollBar.moveVertical(((cursorLineIndex + 1) * lineHeight - editorHeight) / verticalRate)
           }
@@ -278,6 +289,7 @@ export default class JSContent {
     const fragment = document.createDocumentFragment()
     const startIndex = Math.floor(contentScrollTop / lineHeight)
     const endIndex = Math.ceil((contentScrollTop + editorHeight) / lineHeight)
+
 
     textPerLine.forEach((it, index) => {
       if (index < startIndex || index >= endIndex) {

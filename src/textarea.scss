@@ -1,4 +1,14 @@
 .JSTextareaWrap {
-    height: 0;
-    overflow: hidden;
+  height: 0;
+  position: absolute;
+  .JSTextarea {
+    padding: 0;
+    border: none;
+    outline: none;
+    background-color: transparent;
+    color: transparent;
+    resize: none;
+    width: 1px;
+    height: 1px;
+  }
 }
