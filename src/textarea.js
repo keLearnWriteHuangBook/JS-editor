@@ -18,42 +18,44 @@ export default class Textarea {
     this.Editor.JSTextarea = JSTextarea
     JSTextarea.className = 'JSTextarea'
 
-    // const Editor = this.Editor
-    // let str = ''
+    JSTextarea.addEventListener('input', e => {
+      const { textPerLine, copyTextPerLine, lineHeight, gutterWidth, cursor } = this.Editor
+      const { cursorStrIndex, cursorLineIndex } = this.Editor.copyCursorInfo
+      console.log('qunide')
+      let cursorTop, cursorLeft
 
-    // editorDefaultConfig.textPerLine.forEach((it) => {
-    //   str += it + '\r\n'
-    // })
-
-    // JSTextarea.value = str
-  
-    JSTextarea.addEventListener('input', (e) => {
-      const { textPerLine, copyTextPerLine, lineHeight, gutterWidth } = this.Editor
-      const { cursorStrIndex, cursorLineIndex } = this.Editor.cursorInfo
-      console.log(this.Editor.cursorInfo)
-      console.log(e.target.value)
-      console.log(e.target.value.split(/\r\n|\r|\n/))
       const valueArr = e.target.value.split(/\r\n|\r|\n/)
-      let text
+      const cursorPreText = copyTextPerLine[cursorLineIndex].slice(0, cursorStrIndex)
+      const cursorAfterText = copyTextPerLine[cursorLineIndex].slice(cursorStrIndex)
+  
       if (valueArr.length === 1) {
-        text = copyTextPerLine[cursorLineIndex].slice(0, cursorStrIndex) + e.target.value + copyTextPerLine[cursorLineIndex].slice(cursorStrIndex)
+        let text = cursorPreText + valueArr[0] + cursorAfterText
         textPerLine[cursorLineIndex] = text
+        cursorTop = cursorLineIndex * lineHeight
+        cursorLeft = gutterWidth + this.Editor.getTargetWidth(cursorPreText + valueArr[0])
+        cursor.setCursorStrIndex(cursorStrIndex + valueArr[0].length)
       } else {
         valueArr.forEach((it, index) => {
           if (index === 0) {
-            textPerLine[cursorLineIndex] = copyTextPerLine[cursorLineIndex].slice(0, cursorStrIndex) + e.target.value
+            textPerLine[cursorLineIndex] = cursorPreText + it
           } else if (index === valueArr.length - 1) {
-            textPerLine.splice(cursorLineIndex + index, 0, it + copyTextPerLine[cursorLineIndex].slice(cursorStrIndex))
+            textPerLine.splice(cursorLineIndex + index, 0, it + cursorAfterText)
           } else {
             textPerLine.splice(cursorLineIndex + index, 0, it)
           }
         })
+
+        cursorTop = (cursorLineIndex + valueArr.length - 1) * lineHeight
+        cursorLeft = gutterWidth
+        cursor.setCursorLineIndex(cursorTop / lineHeight)
+        cursor.setCursorStrIndex(0)
+  
         this.preInputAction()
       }
-      console.log(text)
-      this.Editor.cursorInfo.cursorStrIndex = this.Editor.cursorInfo.cursorStrIndex + valueArr.pop().length
-      this.Editor.cursor.moveCursor(gutterWidth + this.Editor.getTargetWidth(copyTextPerLine[cursorLineIndex].slice(0, cursorStrIndex) + e.target.value), cursorLineIndex * lineHeight)
-      
+  
+      this.Editor.cursor.moveCursor(cursorLeft, cursorTop)
+
+      this.Editor.content.renderGutter()
       this.Editor.content.renderLine()
     })
 
@@ -71,5 +73,6 @@ export default class Textarea {
     this.Editor.copyTextPerLine = this.Editor.textPerLine.concat([])
     this.Editor.copyCursorInfo = Object.assign({}, this.Editor.cursorInfo)
     this.Editor.JSTextarea.value = ''
+    console.log('shishi')
   }
 }

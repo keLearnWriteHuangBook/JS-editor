@@ -1,6 +1,8 @@
 import { css } from './utils'
 import { fromEvent, of } from 'rxjs'
 import { takeUntil, map, concatAll, take, filter, tap } from 'rxjs/operators'
+import { keyword } from './config/jsConfig'
+import { renderJSLine } from './renderLines/js'
 import './content.scss'
 
 export default class JSContent {
@@ -71,7 +73,7 @@ export default class JSContent {
 
   moveToClickPoint(e, way) {
     const Editor = this.Editor
-    Editor.textarea.preInputAction()
+
     const {
       editorTop,
       lineHeight,
@@ -106,9 +108,6 @@ export default class JSContent {
           cursor.moveCursor(width + gutterWidth + parentNode.offsetLeft, curLine * lineHeight)
         }
       } else {
-        console.log(1)
-        console.log(curLine)
-        console.log(textPerLine.length - 1)
         if (curLine > textPerLine.length - 1) {
           cursorStrIndex = textPerLine[textPerLine.length - 1].length
           cursor.moveToLineEnd(textPerLine.length - 1)
@@ -135,11 +134,12 @@ export default class JSContent {
     } else {
       // this.moveToLineStart(curLine)
     }
+    Editor.textarea.preInputAction()
   }
 
   directionKey(e) {
     const Editor = this.Editor
-    Editor.textarea.preInputAction()
+
     const {
       cursorInfo,
       textPerLine,
@@ -156,39 +156,45 @@ export default class JSContent {
 
     let cursorStrIndex = cursorInfo.cursorStrIndex
     let cursorLineIndex = cursorInfo.cursorLineIndex
-
+    console.log(cursorStrIndex)
+    console.log(cursorLineIndex)
     of(e)
       .pipe(
         filter(e => {
           if (e.keyCode === 38) {
             cursorLineIndex -= 1
+            if (cursorLineIndex < 0) {
+              return false
+            }
           } else if (e.keyCode === 40) {
             cursorLineIndex += 1
+            if (cursorLineIndex >= textPerLine.length) {
+              return false
+            }
           } else if (e.keyCode === 37) {
             cursorStrIndex -= 1
+
+            if (cursorStrIndex < 0) {
+              if (cursorLineIndex === 0) {
+                return false
+              } else {
+                cursorLineIndex -= 1
+                cursorStrIndex = textPerLine[cursorLineIndex].length
+              }
+            }
           } else if (e.keyCode === 39) {
             cursorStrIndex += 1
+            //这里需使用cursorInfo.cursorLineIndex而不是使用cursorLineIndex
+            if (cursorStrIndex > textPerLine[cursorInfo.cursorLineIndex].length) {
+              if (cursorLineIndex >= textPerLine.length - 1) {
+                return false
+              } else {
+                cursorLineIndex += 1
+                cursorStrIndex = 0
+              }
+            }
           }
 
-          if (cursorLineIndex < 0 || cursorLineIndex >= textPerLine.length) {
-            return false
-          }
-          if (cursorStrIndex < 0) {
-            if (cursorLineIndex === 0) {
-              return false
-            } else {
-              cursorLineIndex -= 1
-              cursorStrIndex = textPerLine[cursorLineIndex].length
-            }
-            //这里需使用cursorInfo.cursorLineIndex而不是使用cursorLineIndex
-          } else if (cursorStrIndex > textPerLine[cursorInfo.cursorLineIndex].length) {
-            if (cursorLineIndex >= textPerLine.length - 1) {
-              return false
-            } else {
-              cursorLineIndex += 1
-              cursorStrIndex = 0
-            }
-          }
           return true
         }),
         tap(e => {
@@ -196,7 +202,10 @@ export default class JSContent {
           const width = Editor.getTargetWidth(txt)
 
           cursor.moveCursor(width + gutterWidth, cursorLineIndex * lineHeight)
+          console.log('cursorLineIndex=' + cursorLineIndex)
+          console.log('cursorStrIndex=' + cursorStrIndex)
           cursor.setCursorStrIndex(txt.length)
+          cursor.setCursorLineIndex(cursorLineIndex)
         })
       )
       .subscribe(e => {
@@ -236,6 +245,7 @@ export default class JSContent {
           }
         }
       })
+    Editor.textarea.preInputAction()
   }
 
   initFramework() {
@@ -262,15 +272,7 @@ export default class JSContent {
     JSLineWrapper.className = 'JSLineWrapper'
     JSLineWrapperBackground.appendChild(JSLineWrapper)
 
-    Editor.textPerLine.forEach((it, index) => {
-      const JSGutter = document.createElement('div')
-      JSGutter.className = 'JSGutter'
-      css(JSGutter, {
-        width: Editor.gutterWidth + 'px'
-      })
-      JSGutter.innerText = index + 1
-      JSGutterWrapper.appendChild(JSGutter)
-    })
+    this.renderGutter()
     this.setLineWrapperHeight()
     this.setLineWrapperWidth()
     this.renderLine()
@@ -278,6 +280,24 @@ export default class JSContent {
     fragment.appendChild(JSLineWrapperHidden)
     Editor.JSContent.appendChild(fragment)
     Editor.scrollBar.setScrollWidth()
+  }
+
+  renderGutter() {
+    const Editor = this.Editor
+    const fragment = document.createDocumentFragment()
+
+    Editor.textPerLine.forEach((it, index) => {
+      const JSGutter = document.createElement('div')
+      JSGutter.className = 'JSGutter'
+      css(JSGutter, {
+        width: Editor.gutterWidth + 'px'
+      })
+      JSGutter.innerText = index + 1
+      fragment.appendChild(JSGutter)
+    })
+
+    Editor.JSGutterWrapper.innerHTML = ''
+    Editor.JSGutterWrapper.appendChild(fragment)
   }
 
   renderLine() {
@@ -290,7 +310,6 @@ export default class JSContent {
     const startIndex = Math.floor(contentScrollTop / lineHeight)
     const endIndex = Math.ceil((contentScrollTop + editorHeight) / lineHeight)
 
-
     textPerLine.forEach((it, index) => {
       if (index < startIndex || index >= endIndex) {
         return
@@ -302,23 +321,192 @@ export default class JSContent {
       })
       const JSLineSpan = document.createElement('span')
       JSLineSpan.className = 'JSLineSpan'
+      renderJSLine(Editor, textPerLine, startIndex, endIndex)
+      let loopIndex = 0
+      let isLineStart = true //主要用来判断是否属于声明符（因此排除开头的空格以及“;”后也算行头）
+      let isDeclaration = false
+      let squareBrackets = 0
+      let braces = 0
+      let parenthese = 0
+      let equal = false
+      let singleQuotes = false
+      let doubleQuotes = false
+      let templateQuotes = false
+      const startSpace = it.match(/^\s+/)
 
-      const test2 = document.createElement('span')
-      // it = it.replace(/ /g, '&nbsp;').replace(/</g, '\<').replace(/>/, '\>')
-      test2.innerText = it
-      JSLineSpan.appendChild(test2)
+      if (startSpace) {
+        let spaceStr = ''
+        loopIndex = startSpace[0].length
+        const kTextSpace = document.createElement('span')
+        kTextSpace.className = 'kTextSpace'
+        for (let i = 0; i < loopIndex; i++) {
+          spaceStr += '&nbsp;'
+        }
+        kTextSpace.innerHTML = spaceStr
+        JSLineSpan.appendChild(kTextSpace)
+      }
 
-      // const test = document.createElement('span')
-      // test.innerHTML = '试试'
-      // JSLineSpan.appendChild(test)
+      let currentStr = ''
 
-      // const test1 = document.createElement('span')
-      // test1.innerHTML = '试32试'
-      // JSLineSpan.appendChild(test1)
+      for (let i = loopIndex; i < it.length; i++) {
+        if (it[i] === `'`) {
+          currentStr += it[i]
+          if (singleQuotes) {
+            const kTextString = document.createElement('span')
+            kTextString.className = 'kTextString'
+            kTextString.innerHTML = currentStr
+            JSLineSpan.appendChild(kTextString)
+            singleQuotes = false
+            currentStr = ''
+          } else {
+            singleQuotes = true
+          }
+        } else if (keyword[currentStr] && it[i] === ' ') {
+          const kTextKeyword = document.createElement('span')
+          kTextKeyword.className = `kText${keyword[currentStr]}`
+          kTextKeyword.innerHTML = currentStr
+          JSLineSpan.appendChild(kTextKeyword)
 
-      // const test1 = document.createElement('span')
-      // test1.innerHTML = '试试大叔大婶'
-      // test.appendChild(test1)
+          const kTextSpace = document.createElement('span')
+          kTextSpace.className = 'kTextSpace'
+          kTextSpace.innerHTML = '&nbsp;'
+          JSLineSpan.appendChild(kTextSpace)
+          isDeclaration = true
+          currentStr = ''
+          // i++
+        } else if (isDeclaration) {
+          console.log(it[i])
+          switch (it[i]) {
+            case '{':
+              braces += 1
+              let kTextBracket = document.createElement('span')
+              kTextBracket.className = 'kTextBracket'
+              kTextBracket.innerHTML = '{'
+              JSLineSpan.appendChild(kTextBracket)
+              equal = false
+              currentStr = ''
+              break
+            case '}':
+              braces -= 1
+              if (currentStr) {
+                let kTextVariable = document.createElement('span')
+                kTextVariable.className = 'kTextVariable'
+                kTextVariable.innerHTML = currentStr
+                JSLineSpan.appendChild(kTextVariable)
+                let kTextBracket = document.createElement('span')
+                kTextBracket.className = 'kTextBracket'
+                kTextBracket.innerHTML = '}'
+                JSLineSpan.appendChild(kTextBracket)
+              }
+              currentStr = ''
+              equal = false
+              break
+            case '[':
+              squareBrackets += 1
+              equal = false
+              break
+            case ']':
+              squareBrackets -= 1
+              equal = false
+              break
+            case '(':
+              parenthese -= 1
+              let kTextBracket1 = document.createElement('span')
+              kTextBracket1.className = 'kTextBracket'
+              kTextBracket1.innerHTML = '('
+              JSLineSpan.appendChild(kTextBracket1)
+              currentStr = ''
+              equal = false
+              break
+            case ')':
+              parenthese += 1
+              console.log('currentStr', currentStr)
+              if (currentStr) {
+                let kTextVariable = document.createElement('span')
+                kTextVariable.className = 'kTextVariable'
+                kTextVariable.innerHTML = currentStr
+                JSLineSpan.appendChild(kTextVariable)
+                let kTextBracket = document.createElement('span')
+                kTextBracket.className = 'kTextBracket'
+                kTextBracket.innerHTML = ')'
+                JSLineSpan.appendChild(kTextBracket)
+              }
+              currentStr = ''
+              equal = false
+              break
+            case ',':
+              if (equal) {
+                console.log('currentStr = ', currentStr)
+                if (/^\d*$/.test(currentStr.trim())) {
+                  let kTextNumber = document.createElement('span')
+                  kTextNumber.className = 'kTextNumber'
+                  kTextNumber.innerHTML = currentStr
+                  JSLineSpan.appendChild(kTextNumber)
+                } else {
+                  let kTextVariable = document.createElement('span')
+                  kTextVariable.className = 'kTextVariable'
+                  kTextVariable.innerHTML = currentStr
+                  JSLineSpan.appendChild(kTextVariable)
+                }
+              } else {
+                let kTextVariable = document.createElement('span')
+                kTextVariable.className = 'kTextVariable'
+                kTextVariable.innerHTML = currentStr
+                JSLineSpan.appendChild(kTextVariable)
+              }
+              let kTextComma = document.createElement('span')
+              kTextComma.className = 'kTextComma'
+              kTextComma.innerHTML = ','
+              JSLineSpan.appendChild(kTextComma)
+              currentStr = ''
+              equal = false
+              break
+            case '=':
+              if (braces === 0 && squareBrackets === 0 && parenthese === 0) {
+                isDeclaration = false
+                if (currentStr) {
+                  let kTextVariable1 = document.createElement('span')
+                  kTextVariable1.className = 'kTextVariable'
+                  kTextVariable1.innerHTML = currentStr
+                  JSLineSpan.appendChild(kTextVariable1)
+                }
+              } else {
+                let kTextVariable1 = document.createElement('span')
+                kTextVariable1.className = 'kTextVariable'
+                kTextVariable1.innerHTML = currentStr
+                JSLineSpan.appendChild(kTextVariable1)
+              }
+              let kTextEqual = document.createElement('span')
+              kTextEqual.className = 'kTextEqual'
+              kTextEqual.innerHTML = '='
+              JSLineSpan.appendChild(kTextEqual)
+              equal = true
+              currentStr = ''
+              break
+            default:
+              currentStr += it[i]
+          }
+        } else {
+          console.log('qq')
+          currentStr += it[i]
+        }
+
+        if (currentStr) {
+          if (i === it.length - 1) {
+            const kTextVariable1 = document.createElement('span')
+            kTextVariable1.className = ''
+            kTextVariable1.innerHTML = currentStr
+            JSLineSpan.appendChild(kTextVariable1)
+          }
+        }
+      }
+      // const test2 = document.createElement('span')
+      // it = it
+      //   .replace(/ /g, '&nbsp;')
+      //   .replace(/</g, '&lt;')
+      //   .replace(/>/, '&gt;')
+      // test2.innerHTML = it
+      // JSLineSpan.appendChild(test2)
 
       JSLine.appendChild(JSLineSpan)
       fragment.appendChild(JSLine)

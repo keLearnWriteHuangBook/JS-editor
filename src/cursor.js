@@ -85,4 +85,7 @@ export default class Cursor {
   setCursorStrIndex(index) {
     this.Editor.cursorInfo.cursorStrIndex = index
   }
+  setCursorLineIndex(index) {
+    this.Editor.cursorInfo.cursorLineIndex = index
+  }
 }

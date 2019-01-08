@@ -40,6 +40,30 @@
                     position: absolute;
                     .JSLineSpan {
                         position: relative;
+                        .kTextDeclaration{
+                            color: rgba(84, 150, 204, 1);
+                        }
+                        .kTextVariable{
+                            color: rgba(149, 209, 241, 1);
+                        }
+                        .kTextBracket{
+                            color: #fff;
+                        }
+                        .kTextComma{
+                            color: #fff;
+                        }
+                        .kTextEqual{
+                            color: #fff;
+                        }
+                        .kTextString{
+                            color: rgba(199, 140, 116, 1);
+                        }
+                        .kTextNumber{
+                            color: rgba(180, 204, 167, 1);
+                        }
+                        .kTextLoopJudge{
+                            color: #a889ab;
+                        }
                     }
                 }
             }
