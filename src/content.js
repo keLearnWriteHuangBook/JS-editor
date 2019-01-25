@@ -289,9 +289,7 @@ export default class JSContent {
     Editor.textPerLine.forEach((it, index) => {
       const JSGutter = document.createElement('div')
       JSGutter.className = 'JSGutter'
-      css(JSGutter, {
-        width: Editor.gutterWidth + 'px'
-      })
+  
       JSGutter.innerText = index + 1
       fragment.appendChild(JSGutter)
     })
@@ -309,211 +307,211 @@ export default class JSContent {
     const fragment = document.createDocumentFragment()
     const startIndex = Math.floor(contentScrollTop / lineHeight)
     const endIndex = Math.ceil((contentScrollTop + editorHeight) / lineHeight)
+    // renderJSLine(Editor, textPerLine, startIndex, endIndex)
+    // textPerLine.forEach((it, index) => {
+    //   if (index < startIndex || index >= endIndex) {
+    //     return
+    //   }
+    //   const JSLine = document.createElement('div')
+    //   JSLine.className = 'JSLine'
+    //   css(JSLine, {
+    //     top: index * lineHeight + 'px'
+    //   })
+    //   const JSLineSpan = document.createElement('span')
+    //   JSLineSpan.className = 'JSLineSpan'
+    //   renderJSLine(Editor, textPerLine, startIndex, endIndex)
+    //   let loopIndex = 0
+    //   let isLineStart = true //主要用来判断是否属于声明符（因此排除开头的空格以及“;”后也算行头）
+    //   let isDeclaration = false
+    //   let squareBrackets = 0
+    //   let braces = 0
+    //   let parenthese = 0
+    //   let equal = false
+    //   let singleQuotes = false
+    //   let doubleQuotes = false
+    //   let templateQuotes = false
+    //   const startSpace = it.match(/^\s+/)
 
-    textPerLine.forEach((it, index) => {
-      if (index < startIndex || index >= endIndex) {
-        return
-      }
-      const JSLine = document.createElement('div')
-      JSLine.className = 'JSLine'
-      css(JSLine, {
-        top: index * lineHeight + 'px'
-      })
-      const JSLineSpan = document.createElement('span')
-      JSLineSpan.className = 'JSLineSpan'
-      renderJSLine(Editor, textPerLine, startIndex, endIndex)
-      let loopIndex = 0
-      let isLineStart = true //主要用来判断是否属于声明符（因此排除开头的空格以及“;”后也算行头）
-      let isDeclaration = false
-      let squareBrackets = 0
-      let braces = 0
-      let parenthese = 0
-      let equal = false
-      let singleQuotes = false
-      let doubleQuotes = false
-      let templateQuotes = false
-      const startSpace = it.match(/^\s+/)
+    //   if (startSpace) {
+    //     let spaceStr = ''
+    //     loopIndex = startSpace[0].length
+    //     const kTextSpace = document.createElement('span')
+    //     kTextSpace.className = 'kTextSpace'
+    //     for (let i = 0; i < loopIndex; i++) {
+    //       spaceStr += '&nbsp;'
+    //     }
+    //     kTextSpace.innerHTML = spaceStr
+    //     JSLineSpan.appendChild(kTextSpace)
+    //   }
 
-      if (startSpace) {
-        let spaceStr = ''
-        loopIndex = startSpace[0].length
-        const kTextSpace = document.createElement('span')
-        kTextSpace.className = 'kTextSpace'
-        for (let i = 0; i < loopIndex; i++) {
-          spaceStr += '&nbsp;'
-        }
-        kTextSpace.innerHTML = spaceStr
-        JSLineSpan.appendChild(kTextSpace)
-      }
+    //   let currentStr = ''
 
-      let currentStr = ''
+    //   for (let i = loopIndex; i < it.length; i++) {
+    //     if (it[i] === `'`) {
+    //       currentStr += it[i]
+    //       if (singleQuotes) {
+    //         const kTextString = document.createElement('span')
+    //         kTextString.className = 'kTextString'
+    //         kTextString.innerHTML = currentStr
+    //         JSLineSpan.appendChild(kTextString)
+    //         singleQuotes = false
+    //         currentStr = ''
+    //       } else {
+    //         singleQuotes = true
+    //       }
+    //     } else if (keyword[currentStr] && it[i] === ' ') {
+    //       const kTextKeyword = document.createElement('span')
+    //       kTextKeyword.className = `kText${keyword[currentStr]}`
+    //       kTextKeyword.innerHTML = currentStr
+    //       JSLineSpan.appendChild(kTextKeyword)
 
-      for (let i = loopIndex; i < it.length; i++) {
-        if (it[i] === `'`) {
-          currentStr += it[i]
-          if (singleQuotes) {
-            const kTextString = document.createElement('span')
-            kTextString.className = 'kTextString'
-            kTextString.innerHTML = currentStr
-            JSLineSpan.appendChild(kTextString)
-            singleQuotes = false
-            currentStr = ''
-          } else {
-            singleQuotes = true
-          }
-        } else if (keyword[currentStr] && it[i] === ' ') {
-          const kTextKeyword = document.createElement('span')
-          kTextKeyword.className = `kText${keyword[currentStr]}`
-          kTextKeyword.innerHTML = currentStr
-          JSLineSpan.appendChild(kTextKeyword)
+    //       const kTextSpace = document.createElement('span')
+    //       kTextSpace.className = 'kTextSpace'
+    //       kTextSpace.innerHTML = '&nbsp;'
+    //       JSLineSpan.appendChild(kTextSpace)
+    //       isDeclaration = true
+    //       currentStr = ''
+    //       // i++
+    //     } else if (isDeclaration) {
+    //       console.log(it[i])
+    //       switch (it[i]) {
+    //         case '{':
+    //           braces += 1
+    //           let kTextBracket = document.createElement('span')
+    //           kTextBracket.className = 'kTextBracket'
+    //           kTextBracket.innerHTML = '{'
+    //           JSLineSpan.appendChild(kTextBracket)
+    //           equal = false
+    //           currentStr = ''
+    //           break
+    //         case '}':
+    //           braces -= 1
+    //           if (currentStr) {
+    //             let kTextVariable = document.createElement('span')
+    //             kTextVariable.className = 'kTextVariable'
+    //             kTextVariable.innerHTML = currentStr
+    //             JSLineSpan.appendChild(kTextVariable)
+    //             let kTextBracket = document.createElement('span')
+    //             kTextBracket.className = 'kTextBracket'
+    //             kTextBracket.innerHTML = '}'
+    //             JSLineSpan.appendChild(kTextBracket)
+    //           }
+    //           currentStr = ''
+    //           equal = false
+    //           break
+    //         case '[':
+    //           squareBrackets += 1
+    //           equal = false
+    //           break
+    //         case ']':
+    //           squareBrackets -= 1
+    //           equal = false
+    //           break
+    //         case '(':
+    //           parenthese -= 1
+    //           let kTextBracket1 = document.createElement('span')
+    //           kTextBracket1.className = 'kTextBracket'
+    //           kTextBracket1.innerHTML = '('
+    //           JSLineSpan.appendChild(kTextBracket1)
+    //           currentStr = ''
+    //           equal = false
+    //           break
+    //         case ')':
+    //           parenthese += 1
+    //           console.log('currentStr', currentStr)
+    //           if (currentStr) {
+    //             let kTextVariable = document.createElement('span')
+    //             kTextVariable.className = 'kTextVariable'
+    //             kTextVariable.innerHTML = currentStr
+    //             JSLineSpan.appendChild(kTextVariable)
+    //             let kTextBracket = document.createElement('span')
+    //             kTextBracket.className = 'kTextBracket'
+    //             kTextBracket.innerHTML = ')'
+    //             JSLineSpan.appendChild(kTextBracket)
+    //           }
+    //           currentStr = ''
+    //           equal = false
+    //           break
+    //         case ',':
+    //           if (equal) {
+    //             console.log('currentStr = ', currentStr)
+    //             if (/^\d*$/.test(currentStr.trim())) {
+    //               let kTextNumber = document.createElement('span')
+    //               kTextNumber.className = 'kTextNumber'
+    //               kTextNumber.innerHTML = currentStr
+    //               JSLineSpan.appendChild(kTextNumber)
+    //             } else {
+    //               let kTextVariable = document.createElement('span')
+    //               kTextVariable.className = 'kTextVariable'
+    //               kTextVariable.innerHTML = currentStr
+    //               JSLineSpan.appendChild(kTextVariable)
+    //             }
+    //           } else {
+    //             let kTextVariable = document.createElement('span')
+    //             kTextVariable.className = 'kTextVariable'
+    //             kTextVariable.innerHTML = currentStr
+    //             JSLineSpan.appendChild(kTextVariable)
+    //           }
+    //           let kTextComma = document.createElement('span')
+    //           kTextComma.className = 'kTextComma'
+    //           kTextComma.innerHTML = ','
+    //           JSLineSpan.appendChild(kTextComma)
+    //           currentStr = ''
+    //           equal = false
+    //           break
+    //         case '=':
+    //           if (braces === 0 && squareBrackets === 0 && parenthese === 0) {
+    //             isDeclaration = false
+    //             if (currentStr) {
+    //               let kTextVariable1 = document.createElement('span')
+    //               kTextVariable1.className = 'kTextVariable'
+    //               kTextVariable1.innerHTML = currentStr
+    //               JSLineSpan.appendChild(kTextVariable1)
+    //             }
+    //           } else {
+    //             let kTextVariable1 = document.createElement('span')
+    //             kTextVariable1.className = 'kTextVariable'
+    //             kTextVariable1.innerHTML = currentStr
+    //             JSLineSpan.appendChild(kTextVariable1)
+    //           }
+    //           let kTextEqual = document.createElement('span')
+    //           kTextEqual.className = 'kTextEqual'
+    //           kTextEqual.innerHTML = '='
+    //           JSLineSpan.appendChild(kTextEqual)
+    //           equal = true
+    //           currentStr = ''
+    //           break
+    //         default:
+    //           currentStr += it[i]
+    //       }
+    //     } else {
+    //       console.log('qq')
+    //       currentStr += it[i]
+    //     }
 
-          const kTextSpace = document.createElement('span')
-          kTextSpace.className = 'kTextSpace'
-          kTextSpace.innerHTML = '&nbsp;'
-          JSLineSpan.appendChild(kTextSpace)
-          isDeclaration = true
-          currentStr = ''
-          // i++
-        } else if (isDeclaration) {
-          console.log(it[i])
-          switch (it[i]) {
-            case '{':
-              braces += 1
-              let kTextBracket = document.createElement('span')
-              kTextBracket.className = 'kTextBracket'
-              kTextBracket.innerHTML = '{'
-              JSLineSpan.appendChild(kTextBracket)
-              equal = false
-              currentStr = ''
-              break
-            case '}':
-              braces -= 1
-              if (currentStr) {
-                let kTextVariable = document.createElement('span')
-                kTextVariable.className = 'kTextVariable'
-                kTextVariable.innerHTML = currentStr
-                JSLineSpan.appendChild(kTextVariable)
-                let kTextBracket = document.createElement('span')
-                kTextBracket.className = 'kTextBracket'
-                kTextBracket.innerHTML = '}'
-                JSLineSpan.appendChild(kTextBracket)
-              }
-              currentStr = ''
-              equal = false
-              break
-            case '[':
-              squareBrackets += 1
-              equal = false
-              break
-            case ']':
-              squareBrackets -= 1
-              equal = false
-              break
-            case '(':
-              parenthese -= 1
-              let kTextBracket1 = document.createElement('span')
-              kTextBracket1.className = 'kTextBracket'
-              kTextBracket1.innerHTML = '('
-              JSLineSpan.appendChild(kTextBracket1)
-              currentStr = ''
-              equal = false
-              break
-            case ')':
-              parenthese += 1
-              console.log('currentStr', currentStr)
-              if (currentStr) {
-                let kTextVariable = document.createElement('span')
-                kTextVariable.className = 'kTextVariable'
-                kTextVariable.innerHTML = currentStr
-                JSLineSpan.appendChild(kTextVariable)
-                let kTextBracket = document.createElement('span')
-                kTextBracket.className = 'kTextBracket'
-                kTextBracket.innerHTML = ')'
-                JSLineSpan.appendChild(kTextBracket)
-              }
-              currentStr = ''
-              equal = false
-              break
-            case ',':
-              if (equal) {
-                console.log('currentStr = ', currentStr)
-                if (/^\d*$/.test(currentStr.trim())) {
-                  let kTextNumber = document.createElement('span')
-                  kTextNumber.className = 'kTextNumber'
-                  kTextNumber.innerHTML = currentStr
-                  JSLineSpan.appendChild(kTextNumber)
-                } else {
-                  let kTextVariable = document.createElement('span')
-                  kTextVariable.className = 'kTextVariable'
-                  kTextVariable.innerHTML = currentStr
-                  JSLineSpan.appendChild(kTextVariable)
-                }
-              } else {
-                let kTextVariable = document.createElement('span')
-                kTextVariable.className = 'kTextVariable'
-                kTextVariable.innerHTML = currentStr
-                JSLineSpan.appendChild(kTextVariable)
-              }
-              let kTextComma = document.createElement('span')
-              kTextComma.className = 'kTextComma'
-              kTextComma.innerHTML = ','
-              JSLineSpan.appendChild(kTextComma)
-              currentStr = ''
-              equal = false
-              break
-            case '=':
-              if (braces === 0 && squareBrackets === 0 && parenthese === 0) {
-                isDeclaration = false
-                if (currentStr) {
-                  let kTextVariable1 = document.createElement('span')
-                  kTextVariable1.className = 'kTextVariable'
-                  kTextVariable1.innerHTML = currentStr
-                  JSLineSpan.appendChild(kTextVariable1)
-                }
-              } else {
-                let kTextVariable1 = document.createElement('span')
-                kTextVariable1.className = 'kTextVariable'
-                kTextVariable1.innerHTML = currentStr
-                JSLineSpan.appendChild(kTextVariable1)
-              }
-              let kTextEqual = document.createElement('span')
-              kTextEqual.className = 'kTextEqual'
-              kTextEqual.innerHTML = '='
-              JSLineSpan.appendChild(kTextEqual)
-              equal = true
-              currentStr = ''
-              break
-            default:
-              currentStr += it[i]
-          }
-        } else {
-          console.log('qq')
-          currentStr += it[i]
-        }
+    //     if (currentStr) {
+    //       if (i === it.length - 1) {
+    //         const kTextVariable1 = document.createElement('span')
+    //         kTextVariable1.className = ''
+    //         kTextVariable1.innerHTML = currentStr
+    //         JSLineSpan.appendChild(kTextVariable1)
+    //       }
+    //     }
+    //   }
+    //   // const test2 = document.createElement('span')
+    //   // it = it
+    //   //   .replace(/ /g, '&nbsp;')
+    //   //   .replace(/</g, '&lt;')
+    //   //   .replace(/>/, '&gt;')
+    //   // test2.innerHTML = it
+    //   // JSLineSpan.appendChild(test2)
 
-        if (currentStr) {
-          if (i === it.length - 1) {
-            const kTextVariable1 = document.createElement('span')
-            kTextVariable1.className = ''
-            kTextVariable1.innerHTML = currentStr
-            JSLineSpan.appendChild(kTextVariable1)
-          }
-        }
-      }
-      // const test2 = document.createElement('span')
-      // it = it
-      //   .replace(/ /g, '&nbsp;')
-      //   .replace(/</g, '&lt;')
-      //   .replace(/>/, '&gt;')
-      // test2.innerHTML = it
-      // JSLineSpan.appendChild(test2)
-
-      JSLine.appendChild(JSLineSpan)
-      fragment.appendChild(JSLine)
-    })
+    //   JSLine.appendChild(JSLineSpan)
+    //   fragment.appendChild(JSLine)
+    // })
 
     Editor.JSLineWrapper.innerHTML = ''
-    Editor.JSLineWrapper.appendChild(fragment)
+    Editor.JSLineWrapper.appendChild(renderJSLine(Editor, textPerLine, startIndex, endIndex))
   }
 
   setLineWrapperHeight() {

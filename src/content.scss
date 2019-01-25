@@ -41,10 +41,10 @@
                     .JSLineSpan {
                         position: relative;
                         .kTextDeclaration{
-                            color: rgba(84, 150, 204, 1);
+                            color: #3296e8;
                         }
                         .kTextVariable{
-                            color: rgba(149, 209, 241, 1);
+                            color: #90d2f5;
                         }
                         .kTextBracket{
                             color: #fff;
@@ -58,11 +58,17 @@
                         .kTextString{
                             color: rgba(199, 140, 116, 1);
                         }
+                        .kTextAnnotation{
+                            color: rgba(105, 151, 84, 1);
+                        }
                         .kTextNumber{
                             color: rgba(180, 204, 167, 1);
                         }
                         .kTextLoopJudge{
-                            color: #a889ab;
+                            color: #d27bda;
+                        }
+                        .kTextOther{
+                            color: #fff;
                         }
                     }
                 }

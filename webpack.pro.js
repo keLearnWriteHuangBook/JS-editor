@@ -7,7 +7,7 @@ const srcPath = path.join(__dirname, './src')
 const distPath = path.join(__dirname, './dist')
 
 const webpackConfig = {
-  mode: 'production',
+  mode: 'development',
   entry: {
     index: [path.join(srcPath, './index.js')]
   },
