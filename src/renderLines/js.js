@@ -243,6 +243,8 @@ function jugdeLastCharacter(curIndex, length, JSLineSpan, text, currentLine, quo
       createSpan(JSLineSpan, 'kTextString', text)
     } else if (annotationType) {
       createSpan(JSLineSpan, 'kTextAnnotation', text)
+    } else if (keyword[text]) {
+      createSpan(JSLineSpan, `kText${keyword[text]}`, text)
     } else if (isNaN(text)) {
       createSpan(JSLineSpan, 'kTextVariable', text)
     } else if (!isNaN(text)) {

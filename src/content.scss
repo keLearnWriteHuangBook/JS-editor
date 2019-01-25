@@ -40,8 +40,8 @@
                     position: absolute;
                     .JSLineSpan {
                         position: relative;
-                        .kTextDeclaration{
-                            color: #3296e8;
+                        .kTextDeclaration, .kTextThis, .kTextBool, .kTextFunction, .kTextGlobal, .kTextNew, .kTextDataType{
+                            color: #4098e0;
                         }
                         .kTextVariable{
                             color: #90d2f5;

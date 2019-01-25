@@ -13,7 +13,20 @@ export const keyword = {
   if: 'LoopJudge',
   for: 'LoopJudge',
   white: 'LoopJudge',
-  switch: 'LoopJudge'
+  switch: 'LoopJudge',
+  this: 'This',
+  true: 'Bool',
+  false: 'Bool',
+  function: 'Function',
+  document: 'Global',
+  window: 'Global',
+  location: 'Global',
+  navigator: 'Global',
+  screen: 'Global',
+  history: 'Global',
+  undefined: 'DataType',
+  null: 'DataType',
+  new: 'New'
 }
 
 export const splitSymbol = {

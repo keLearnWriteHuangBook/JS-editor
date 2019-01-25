@@ -21,7 +21,7 @@ export default class Textarea {
     JSTextarea.addEventListener('input', e => {
       const { textPerLine, copyTextPerLine, lineHeight, gutterWidth, cursor } = this.Editor
       const { cursorStrIndex, cursorLineIndex } = this.Editor.copyCursorInfo
-      console.log('qunide')
+  
       let cursorTop, cursorLeft
 
       const valueArr = e.target.value.split(/\r\n|\r|\n/)
@@ -73,6 +73,5 @@ export default class Textarea {
     this.Editor.copyTextPerLine = this.Editor.textPerLine.concat([])
     this.Editor.copyCursorInfo = Object.assign({}, this.Editor.cursorInfo)
     this.Editor.JSTextarea.value = ''
-    console.log('shishi')
   }
 }
