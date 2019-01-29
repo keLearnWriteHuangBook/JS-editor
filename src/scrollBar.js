@@ -115,11 +115,12 @@ export default class scrollBar {
   }
 
   setHorizonWidth() {
-    const { editorWidth, gutterWidth, JSHorizonScrollSlider, scrollBarInfo } = this.Editor
+    const { editorInfo, gutterWidth, JSHorizonScrollSlider, scrollBarInfo } = this.Editor
     const JSLine = document.querySelector('.JSLineWrapper .JSLine')
     const contentAllWidth = JSLine.getBoundingClientRect().width
-    const contentViewWidth = editorWidth - gutterWidth
+    const contentViewWidth = editorInfo.width - gutterWidth
     let length
+    console.log(contentAllWidth)
     if (contentAllWidth > contentViewWidth) {
       length = (contentViewWidth / contentAllWidth) * 100 + '%'
     } else {
@@ -128,15 +129,14 @@ export default class scrollBar {
     css(JSHorizonScrollSlider, {
       width: length
     })
-
     scrollBarInfo.horizonScrollLength = JSHorizonScrollSlider.getBoundingClientRect().width
     this.setHorizonRate()
   }
 
   setVerticalWidth() {
-    const { textPerLine, lineHeight, editorHeight, JSVerticalScrollSlider, scrollBarInfo } = this.Editor
-    const contentAllHeight = textPerLine.length * lineHeight + editorHeight - lineHeight
-    const contentViewHeight = editorHeight
+    const { textPerLine, lineHeight, editorInfo, JSVerticalScrollSlider, scrollBarInfo } = this.Editor
+    const contentAllHeight = textPerLine.length * lineHeight + editorInfo.height - lineHeight
+    const contentViewHeight = editorInfo.height
     let length
     if (contentAllHeight > contentViewHeight) {
       length = (contentViewHeight / contentAllHeight) * 100 + '%'
@@ -153,27 +153,27 @@ export default class scrollBar {
   }
 
   setHorizonRate() {
-    const { scrollBarInfo, editorWidth, gutterWidth } = this.Editor
+    const { scrollBarInfo, editorInfo, gutterWidth } = this.Editor
     const JSLine = document.querySelector('.JSLineWrapper .JSLine')
     const contentAllWidth = JSLine.getBoundingClientRect().width
     scrollBarInfo.horizonRate =
-      (contentAllWidth - editorWidth + gutterWidth) / (editorWidth - gutterWidth - scrollBarInfo.horizonScrollLength)
+      (contentAllWidth - editorInfo.width + gutterWidth) / (editorInfo.width - gutterWidth - scrollBarInfo.horizonScrollLength)
   }
 
   setVerticalRate() {
-    const { textPerLine, lineHeight, editorHeight, scrollBarInfo } = this.Editor
-    const contentAllHeight = textPerLine.length * lineHeight + editorHeight - lineHeight
-    scrollBarInfo.verticalRate = (contentAllHeight - editorHeight) / (editorHeight - scrollBarInfo.verticalScrollLength)
+    const { textPerLine, lineHeight, editorInfo, scrollBarInfo } = this.Editor
+    const contentAllHeight = textPerLine.length * lineHeight + editorInfo.height - lineHeight
+    scrollBarInfo.verticalRate = (contentAllHeight - editorInfo.height) / (editorInfo.height - scrollBarInfo.verticalScrollLength)
   }
 
   scrollWheel(e) {
-    const { scrollBarInfo, editorHeight, editorWidth, gutterWidth } = this.Editor
+    const { scrollBarInfo, editorInfo, gutterWidth } = this.Editor
 
     if (e.deltaY !== 0 && scrollBarInfo.verticalScrollLength !== 0) {
       const top = scrollBarInfo.verticalScrollTop + e.deltaY * scrollBarInfo.scrollRate
       let nextTop = top
-      if (top + scrollBarInfo.verticalScrollLength > editorHeight) {
-        nextTop = editorHeight - scrollBarInfo.verticalScrollLength
+      if (top + scrollBarInfo.verticalScrollLength > editorInfo.height) {
+        nextTop = editorInfo.height - scrollBarInfo.verticalScrollLength
       } else if (top < 0) {
         nextTop = 0
       } else {
@@ -188,8 +188,8 @@ export default class scrollBar {
       const left = scrollBarInfo.horizonScrollLeft + e.deltaX * scrollBarInfo.scrollRate
       let nextLeft = left
 
-      if (left + scrollBarInfo.horizonScrollLength > editorWidth - gutterWidth) {
-        nextLeft = editorWidth - gutterWidth - scrollBarInfo.horizonScrollLength
+      if (left + scrollBarInfo.horizonScrollLength > editorInfo.width - gutterWidth) {
+        nextLeft = editorInfo.width - gutterWidth - scrollBarInfo.horizonScrollLength
       } else if (left < 0) {
         nextLeft = 0
       } else {
@@ -202,8 +202,8 @@ export default class scrollBar {
   }
 
   scrollHorizonMouse(me, startPos, e) {
-    const { editorLeft, gutterWidth, scrollBarInfo, editorWidth, editorHeight } = me.Editor
-    let mousePos = e.clientX - editorLeft - gutterWidth
+    const { editorInfo, gutterWidth, scrollBarInfo } = me.Editor
+    let mousePos = e.clientX - editorInfo.left - gutterWidth
     let nextLeft
   
     if (startPos === null) {
@@ -212,8 +212,8 @@ export default class scrollBar {
       } else {
         nextLeft = mousePos - scrollBarInfo.horizonScrollLength / 2
         console.log('nextLeft' + nextLeft)
-        if (nextLeft + scrollBarInfo.horizonScrollLength > editorWidth - gutterWidth) {
-          nextLeft = editorWidth - gutterWidth - scrollBarInfo.horizonScrollLength
+        if (nextLeft + scrollBarInfo.horizonScrollLength > editorInfo.width - gutterWidth) {
+          nextLeft = editorInfo.width - gutterWidth - scrollBarInfo.horizonScrollLength
         } else if (nextLeft < 0) {
           nextLeft = 0
         }
@@ -221,8 +221,8 @@ export default class scrollBar {
     } else {
       nextLeft = scrollBarInfo.horizonScrollLeft + e.clientX - startPos.X
       console.log('nextLeft' + nextLeft)
-      if (nextLeft + scrollBarInfo.horizonScrollLength > editorWidth - gutterWidth) {
-        nextLeft = editorWidth - gutterWidth - scrollBarInfo.horizonScrollLength
+      if (nextLeft + scrollBarInfo.horizonScrollLength > editorInfo.width - gutterWidth) {
+        nextLeft = editorInfo.width - gutterWidth - scrollBarInfo.horizonScrollLength
       } else if (nextLeft < 0) {
         nextLeft = 0
       }
@@ -233,8 +233,8 @@ export default class scrollBar {
   }
 
   scrollVerticalMouse(me, startPos, e) {
-    const { editorTop, scrollBarInfo, editorHeight } = me.Editor
-    let mousePos = e.clientY - editorTop
+    const { editorInfo, scrollBarInfo } = me.Editor
+    let mousePos = e.clientY - editorInfo.top
     let nextTop
   
     if (startPos === null) {
@@ -243,8 +243,8 @@ export default class scrollBar {
       } else {
         nextTop = mousePos - scrollBarInfo.verticalScrollLength / 2
 
-        if (nextTop + scrollBarInfo.verticalScrollLength > editorHeight) {
-          nextTop = editorHeight - scrollBarInfo.verticalScrollLength
+        if (nextTop + scrollBarInfo.verticalScrollLength > editorInfo.height) {
+          nextTop = editorInfo.height - scrollBarInfo.verticalScrollLength
         } else if (nextTop < 0) {
           nextTop = 0
         }
@@ -252,8 +252,8 @@ export default class scrollBar {
     } else {
       nextTop = scrollBarInfo.verticalScrollTop + e.clientY - startPos.Y
 
-      if (nextTop + scrollBarInfo.verticalScrollLength > editorHeight) {
-        nextTop = editorHeight - scrollBarInfo.verticalScrollLength
+      if (nextTop + scrollBarInfo.verticalScrollLength > editorInfo.height) {
+        nextTop = editorInfo.height - scrollBarInfo.verticalScrollLength
       } else if (nextTop < 0) {
         nextTop = 0
       }

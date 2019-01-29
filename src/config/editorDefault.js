@@ -7,7 +7,7 @@ export default {
     color: '#fff'
   },
   textPerLine: [
-    "4反倒234'2`3  423 432423'",
+    "4反倒234234234234234234234234234234234234234234234234234234'2`3  423 432423'",
     '大叔大婶<span>89`53453453453an>----呵呵结束',
     '可d可d/*可d可d`fs*/fsd',
     'ᄀ',
@@ -15,7 +15,7 @@ export default {
     'null',
     'window',
     'navigator',
-    'history',
+    'history ',
     'screen',
     'document.createElement("div")',
     'co/*nst',
@@ -38,7 +38,7 @@ export default {
     '  a = 3',
     '}',
     '3',
-    '363636363636363636363636363636363636363636363636363636363636363636363636',
+    '36363636',
     'a',
     'a',
     '{',
@@ -60,6 +60,8 @@ export default {
   ],
   gutterWidth: 60,
   scrollThickness: 10,
+  tabBlank: 2,
+  editorInfo: {},
   contentInfo: {
     height: 0,
     width: 0,

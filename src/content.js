@@ -29,11 +29,20 @@ export default class JSContent {
           //判断是否激活Editor
           if (Editor.JSEditor.contains(e.target)) {
             Editor.cursor.showCursor()
+            const editorInfo = Editor.JSEditor.getBoundingClientRect()
+            console.log(editorInfo)
+            Editor.editorInfo.top = editorInfo.top
+            Editor.editorInfo.left = editorInfo.left
+            Editor.editorInfo.width = editorInfo.width
+            Editor.editorInfo.height = editorInfo.height
             me.moveToClickPoint(e, 'down')
             // 必须阻止默认事件，否则输入框无法聚焦
             e.preventDefault()
             Editor.JSTextarea.focus()
             Editor.isActive = true
+            console.log(Editor.cursorInfo)
+            console.log(Editor.cursorInfo.cursorLineIndex)
+            console.log(Editor.cursorInfo.cursorStrIndex)
             return mousemove.pipe(takeUntil(mouseup))
           } else {
             Editor.cursor.hideCursor()
@@ -51,6 +60,7 @@ export default class JSContent {
         return
       }
       me.moveToClickPoint(e, 'up')
+      console.log(Editor.cursorInfo)
     })
 
     const mousewheel = fromEvent(JSContent, 'mousewheel')
@@ -75,23 +85,27 @@ export default class JSContent {
     const Editor = this.Editor
 
     const {
-      editorTop,
       lineHeight,
       JSEditor,
       cursor,
       scrollBar,
       gutterWidth,
+      editorInfo,
       scrollBarInfo,
       textPerLine,
       JSHorizonScroll
     } = Editor
     const { verticalScrollTop, verticalRate, horizonScrollLeft, horizonRate } = scrollBarInfo
-    const curLine = Math.max(Math.floor((e.clientY + verticalScrollTop * verticalRate - editorTop) / lineHeight), 0),
+    const curLine = Math.max(Math.floor((e.clientY + verticalScrollTop * verticalRate - editorInfo.top) / lineHeight), 0),
       clientY = curLine * lineHeight + lineHeight / 2 - verticalScrollTop * verticalRate,
-      range = document.caretRangeFromPoint(e.clientX, clientY + editorTop),
-      endContainer = range.endContainer
-   
+      range = document.caretRangeFromPoint(e.clientX, clientY + editorInfo.top)
+    
     if (JSEditor.contains(e.target)) {
+      const endContainer = range.endContainer
+      console.log(editorInfo)
+      console.log(endContainer)
+      console.log(curLine)
+      console.log(e.clientY)
       let cursorStrIndex = null
       if (endContainer.nodeType === endContainer.TEXT_NODE) {
         const parentNode = endContainer.parentNode
@@ -134,7 +148,9 @@ export default class JSContent {
         )
       }
     } else {
-      // this.moveToLineStart(curLine)
+      console.log(e.clientX)
+      console.log()
+      Editor.cursor.moveToLineStart(curLine)
     }
     Editor.textarea.preInputAction()
   }
@@ -151,15 +167,13 @@ export default class JSContent {
       scrollBarInfo,
       JSHorizonScroll,
       scrollBar,
-      editorHeight,
-      editorWidth
+      editorInfo
     } = Editor
     const { horizonScrollLeft, horizonRate, verticalScrollTop, verticalRate } = scrollBarInfo
 
     let cursorStrIndex = cursorInfo.cursorStrIndex
     let cursorLineIndex = cursorInfo.cursorLineIndex
-    console.log(cursorStrIndex)
-    console.log(cursorLineIndex)
+  
     of(e)
       .pipe(
         filter(e => {
@@ -204,8 +218,6 @@ export default class JSContent {
           const width = Editor.getTargetWidth(txt)
 
           cursor.moveCursor(width + gutterWidth, cursorLineIndex * lineHeight)
-          console.log('cursorLineIndex=' + cursorLineIndex)
-          console.log('cursorStrIndex=' + cursorStrIndex)
           cursor.setCursorStrIndex(txt.length)
           cursor.setCursorLineIndex(cursorLineIndex)
         })
@@ -219,8 +231,8 @@ export default class JSContent {
             scrollBar.moveHorizon(Math.max((cursorInfo.left - gutterWidth - 20) / horizonRate, 0))
           }
         } else if (e.keyCode === 40) {
-          if (cursorInfo.top >= verticalScrollTop * verticalRate + editorHeight) {
-            scrollBar.moveVertical(((cursorLineIndex + 1) * lineHeight - editorHeight) / verticalRate)
+          if (cursorInfo.top >= verticalScrollTop * verticalRate + editorInfo.height) {
+            scrollBar.moveVertical(((cursorLineIndex + 1) * lineHeight - editorInfo.height) / verticalRate)
           }
           if (cursorInfo.left - gutterWidth - 20 < horizonScrollLeft * horizonRate) {
             scrollBar.moveHorizon(Math.max((cursorInfo.left - gutterWidth - 20) / horizonRate, 0))
@@ -228,22 +240,22 @@ export default class JSContent {
         } else if (e.keyCode === 37) {
           if (cursorInfo.left - gutterWidth - 20 < horizonScrollLeft * horizonRate) {
             scrollBar.moveHorizon(Math.max((cursorInfo.left - gutterWidth - 20) / horizonRate, 0))
-          } else if (cursorInfo.left > horizonScrollLeft * horizonRate + editorWidth) {
-            scrollBar.moveHorizon((cursorInfo.left - editorWidth + 20) / horizonRate)
+          } else if (cursorInfo.left > horizonScrollLeft * horizonRate + editorInfo.width) {
+            scrollBar.moveHorizon((cursorInfo.left - editorInfo.width + 20) / horizonRate)
           }
 
           if (cursorInfo.top < verticalScrollTop * verticalRate) {
             scrollBar.moveVertical(cursorInfo.top / verticalRate)
           }
         } else if (e.keyCode === 39) {
-          if (cursorInfo.left > horizonScrollLeft * horizonRate + editorWidth - 20) {
-            scrollBar.moveHorizon((cursorInfo.left - editorWidth + 20) / horizonRate)
+          if (cursorInfo.left > horizonScrollLeft * horizonRate + editorInfo.width - 20) {
+            scrollBar.moveHorizon((cursorInfo.left - editorInfo.width + 20) / horizonRate)
           } else if (cursorInfo.left - gutterWidth < horizonScrollLeft * horizonRate) {
             scrollBar.moveHorizon((cursorInfo.left - gutterWidth) / horizonRate)
           }
 
-          if (cursorInfo.top >= verticalScrollTop * verticalRate + editorHeight) {
-            scrollBar.moveVertical(((cursorLineIndex + 1) * lineHeight - editorHeight) / verticalRate)
+          if (cursorInfo.top >= verticalScrollTop * verticalRate + editorInfo.height) {
+            scrollBar.moveVertical(((cursorLineIndex + 1) * lineHeight - editorInfo.height) / verticalRate)
           }
         }
       })
@@ -302,15 +314,19 @@ export default class JSContent {
 
   renderLine() {
     const Editor = this.Editor
-    const { scrollBarInfo, editorHeight, lineHeight, textPerLine } = Editor
+    const { scrollBarInfo, editorInfo, lineHeight, textPerLine } = Editor
     const { verticalScrollTop, verticalRate } = scrollBarInfo
     const contentScrollTop = verticalScrollTop * verticalRate
 
     const startIndex = Math.floor(contentScrollTop / lineHeight)
-    const endIndex = Math.ceil((contentScrollTop + editorHeight) / lineHeight)
+    const endIndex = Math.ceil((contentScrollTop + editorInfo.height) / lineHeight)
 
     Editor.JSLineWrapper.innerHTML = ''
     Editor.JSLineWrapper.appendChild(renderJSLine(Editor, textPerLine, startIndex, endIndex))
+  }
+
+  renderSelectedArea () {
+
   }
 
   setLineWrapperHeight() {

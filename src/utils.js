@@ -14,3 +14,7 @@ export function removeDom(dom) {
     from(dom).subscribe(x => x.parentNode.removeChild(x))
   }
 }
+
+export function stringSplice(start, str, newStr) {
+  return str.slice(0, start) + newStr + str.slice(start)
+}

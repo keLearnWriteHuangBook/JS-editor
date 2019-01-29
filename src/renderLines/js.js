@@ -74,15 +74,16 @@ export function renderJSLine(Editor, textPerLine, startIndex, endIndex) {
       }
 
       if (splitSymbol[it[i]]) {
-        if (isNaN(currentStr)) {
-          if (keyword[currentStr]) {
-            createSpan(JSLineSpan, `kText${keyword[currentStr]}`, currentStr)
+        if (currentStr !== '') {
+          if (isNaN(currentStr)) {
+            if (keyword[currentStr]) {
+              createSpan(JSLineSpan, `kText${keyword[currentStr]}`, currentStr)
+            } else {
+              createSpan(JSLineSpan, 'kTextVariable', currentStr)
+            }
           } else {
-            createSpan(JSLineSpan, 'kTextVariable', currentStr)
+            createSpan(JSLineSpan, 'kTextNumber', currentStr)
           }
-          
-        } else {
-          createSpan(JSLineSpan, 'kTextNumber', currentStr)
         }
 
         if (it[i] === '/' && (it[i + 1] === '/' || it[i + 1] === '*')) {

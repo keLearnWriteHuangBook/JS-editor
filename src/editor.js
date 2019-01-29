@@ -28,6 +28,12 @@ export default class Editor {
     target.appendChild(JSEditor)
 
     const JSEditorInfo = JSEditor.getBoundingClientRect()
+    this.editorInfo = {
+      top:  JSEditorInfo.top,
+      left:  JSEditorInfo.left,
+      width:  JSEditorInfo.width,
+      height:  JSEditorInfo.height,
+    }
     this.editorTop = JSEditorInfo.top
     this.editorLeft = JSEditorInfo.left
     this.editorWidth = JSEditorInfo.width
@@ -41,9 +47,11 @@ export default class Editor {
     this.content = new Content(this)
   }
   initComWidthEl() {
+    const dom = document.createElement('div')
     const el = document.createElement('pre')
     el.style = `position:absolute;visibility:hidden;font-size:${this.fontSize}px`
-    this.JSEditor.appendChild(el)
+    dom.appendChild(el)
+    this.JSEditor.appendChild(dom)
     this.comWidthEl = el
   }
   getTargetWidth(target) {
