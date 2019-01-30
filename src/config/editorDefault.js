@@ -67,7 +67,7 @@ export default {
     height: 0,
     width: 0,
     maxWidthLine: null,
-    rightGap: 20 //右边的空隙
+    rightGap: 20, //右边的空隙
   },
   cursorInfo: {
     left: 0,

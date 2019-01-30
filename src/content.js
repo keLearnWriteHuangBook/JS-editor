@@ -63,7 +63,6 @@ export default class JSContent {
         clearInterval(timer)
         timer = null
       }
-      console.log(Editor.cursorInfo)
     })
 
     const mousewheel = fromEvent(JSContent, 'mousewheel')
@@ -110,24 +109,17 @@ export default class JSContent {
       ),
       clientY = curLine * lineHeight + lineHeight / 2 - verticalScrollTop * verticalRate,
       range = document.caretRangeFromPoint(e.clientX, clientY + editorInfo.top)
-
     if (JSEditor.contains(e.target)) {
       const endContainer = range.endContainer
       const parentNode = endContainer.parentNode
       const relativeX = e.clientX - editorInfo.left
-      const rollStart = editorInfo.width - rollRange - scrollThickness
-      const rollEnd = editorInfo.width - scrollThickness
-      console.log(e.clientX - editorInfo.left)
-      console.log(editorInfo.width - rollRange - scrollThickness)
-      console.log(editorInfo.width - scrollThickness)
-      if (relativeX >= rollStart && relativeX < rollEnd) {
-        const viewStart = scrollBarInfo.horizonScrollLeft * scrollBarInfo.horizonRate
-        const viewEnd = scrollBarInfo.horizonScrollLeft * scrollBarInfo.horizonRate + editorInfo.width - gutterWidth
-        console.log(viewStart, viewEnd)
-        console.log(textPerLine[curLine])
-        console.log(Editor.getTargetWidth(textPerLine[curLine]))
-        console.log(editorInfo.width - gutterWidth - scrollBarInfo.horizonScrollLength)
-        console.log(scrollBarInfo)
+      const rollRightStart = editorInfo.width - rollRange - scrollThickness
+      const rollRightEnd = editorInfo.width - scrollThickness
+      const rollLeftStart = gutterWidth
+      const rollLeftEnd = gutterWidth + rollRange * 2
+      const viewStart = scrollBarInfo.horizonScrollLeft * scrollBarInfo.horizonRate
+      const viewEnd = scrollBarInfo.horizonScrollLeft * scrollBarInfo.horizonRate + editorInfo.width - gutterWidth
+      if (relativeX >= rollRightStart && relativeX < rollRightEnd) {
         if (Editor.getTargetWidth(textPerLine[curLine]) + contentInfo.rightGap + scrollThickness > viewEnd) {
           if (!timer) {
             const previousTextLength = this.Editor.getPreviousTextLength(parentNode)
@@ -152,7 +144,37 @@ export default class JSContent {
               }
             }, 50)
           }
+          return
+        }
+      }
 
+      if (relativeX >= rollLeftStart && relativeX < rollLeftEnd) {
+        if (Editor.getTargetWidth(textPerLine[curLine]) > viewStart) {
+          if (!timer) {
+            const previousTextLength = this.Editor.getPreviousTextLength(parentNode)
+
+            let cursorStrIndex = previousTextLength + range.endOffset
+
+            const txt = textPerLine[curLine].slice(0, cursorStrIndex),
+              width = this.Editor.getTargetWidth(txt)
+
+            cursor.moveCursor(width + gutterWidth, curLine * lineHeight)
+
+            timer = setInterval(function() {
+              cursorStrIndex--
+              cursor.setCursorStrIndex(cursorStrIndex)
+              const txt = textPerLine[curLine].slice(0, cursorStrIndex)
+              const width = Editor.getTargetWidth(txt)
+
+              cursor.moveCursor(width + gutterWidth, curLine * lineHeight)
+              scrollBar.moveHorizon(Math.min(Math.max((cursorInfo.left - gutterWidth - 20) / horizonRate, 0), horizonScrollLeft))
+              
+              if ((cursorInfo.left - gutterWidth - 20) / horizonRate <= 0) {
+                clearInterval(timer)
+                timer = null
+              }
+            }, 50)
+          }
           return
         }
       }
@@ -181,6 +203,11 @@ export default class JSContent {
           cursor.moveToLineEnd(textPerLine.length - 1)
         }
 
+        if (endContainer.className.indexOf('KEditorScroll') > -1) {
+          cursorStrIndex = textPerLine[curLine].length
+          cursor.moveToLineEnd(curLine)
+        }
+
         if (endContainer.className === 'JSLine') {
           cursorStrIndex = 0
           cursor.moveToLineEnd(curLine)
@@ -189,14 +216,19 @@ export default class JSContent {
       cursor.setCursorStrIndex(cursorStrIndex)
       if (
         horizonScrollLeft * horizonRate + gutterWidth > this.Editor.cursorInfo.left &&
-        !JSHorizonScroll.contains(e.target) &&
-        way === 'down'
+        !JSHorizonScroll.contains(e.target)
       ) {
         scrollBar.moveHorizon(
           Math.max(
             (this.Editor.getTargetWidth(textPerLine[Math.min(curLine, textPerLine.length - 1)]) - 20) / horizonRate,
             0
           )
+        )
+      }
+
+      if (horizonScrollLeft * horizonRate + gutterWidth + editorInfo.width < this.Editor.cursorInfo.left) {
+        scrollBar.moveHorizon(
+          (this.Editor.getTargetWidth(textPerLine[curLine]) - (editorInfo.width - gutterWidth) + 20) / horizonRate
         )
       }
     } else {
