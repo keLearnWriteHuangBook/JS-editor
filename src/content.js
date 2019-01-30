@@ -167,13 +167,15 @@ export default class JSContent {
               const width = Editor.getTargetWidth(txt)
 
               cursor.moveCursor(width + gutterWidth, curLine * lineHeight)
-              scrollBar.moveHorizon(Math.min(Math.max((cursorInfo.left - gutterWidth - 20) / horizonRate, 0), horizonScrollLeft))
-              
+              scrollBar.moveHorizon(
+                Math.min(Math.max((cursorInfo.left - gutterWidth - 20) / horizonRate, 0), horizonScrollLeft)
+              )
+
               if ((cursorInfo.left - gutterWidth - 20) / horizonRate <= 0) {
                 clearInterval(timer)
                 timer = null
               }
-            }, 50)
+            }, 30)
           }
           return
         }
@@ -187,6 +189,9 @@ export default class JSContent {
         if (parentNode.className === 'JSGutter') {
           cursorStrIndex = 0
           cursor.moveToLineStart(curLine)
+          cursor.setCursorStrIndex(cursorStrIndex)
+          scrollBar.moveHorizon(0)
+          return
         } else {
           const previousTextLength = this.Editor.getPreviousTextLength(parentNode)
 
@@ -232,9 +237,26 @@ export default class JSContent {
         )
       }
     } else {
-      console.log(e.clientX)
-      console.log()
-      Editor.cursor.moveToLineStart(curLine)
+      const viewStart = scrollBarInfo.horizonScrollLeft * scrollBarInfo.horizonRate
+      const viewEnd = scrollBarInfo.horizonScrollLeft * scrollBarInfo.horizonRate + editorInfo.width - gutterWidth
+      const relativeX = e.clientX - editorInfo.left
+      if (curLine <= textPerLine.length - 1) {
+        if (relativeX < viewStart) {
+          Editor.cursor.moveToLineStart(curLine)
+          scrollBar.moveHorizon(0)
+          cursor.setCursorStrIndex(0)
+        } else {
+          Editor.cursor.moveToLineEnd(curLine)
+          if (this.Editor.getTargetWidth(textPerLine[curLine]) > editorInfo.width - gutterWidth) {
+            scrollBar.moveHorizon(
+              (this.Editor.getTargetWidth(textPerLine[curLine]) - (editorInfo.width - gutterWidth) + 20) / horizonRate
+            )
+          } else {
+            scrollBar.moveHorizon(0)
+          }
+          cursor.setCursorStrIndex(textPerLine[curLine].length)
+        }
+      }
     }
     Editor.textarea.preInputAction()
   }
