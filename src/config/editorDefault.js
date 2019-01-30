@@ -20,7 +20,7 @@ export default {
     'document.createElement("div")',
     'co/*nst',
     'a',
-    'a423423',
+    'a42342323423234232342323423234232342323423234232342323423234232342323423234232342323423234232342323423',
     'a*/',
     '',
     'a{}{}{}',
@@ -60,13 +60,14 @@ export default {
   ],
   gutterWidth: 60,
   scrollThickness: 10,
+  rollRange: 15,
   tabBlank: 2,
   editorInfo: {},
   contentInfo: {
     height: 0,
     width: 0,
     maxWidthLine: null,
-    rightGap: 20
+    rightGap: 20 //右边的空隙
   },
   cursorInfo: {
     left: 0,

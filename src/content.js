@@ -5,6 +5,9 @@ import { keyword } from './config/jsConfig'
 import { renderJSLine } from './renderLines/js'
 import './content.scss'
 
+//当鼠标处于右边自动滚动的定时器
+let timer
+
 export default class JSContent {
   constructor(Editor) {
     this.Editor = Editor
@@ -30,7 +33,6 @@ export default class JSContent {
           if (Editor.JSEditor.contains(e.target)) {
             Editor.cursor.showCursor()
             const editorInfo = Editor.JSEditor.getBoundingClientRect()
-            console.log(editorInfo)
             Editor.editorInfo.top = editorInfo.top
             Editor.editorInfo.left = editorInfo.left
             Editor.editorInfo.width = editorInfo.width
@@ -40,9 +42,6 @@ export default class JSContent {
             e.preventDefault()
             Editor.JSTextarea.focus()
             Editor.isActive = true
-            console.log(Editor.cursorInfo)
-            console.log(Editor.cursorInfo.cursorLineIndex)
-            console.log(Editor.cursorInfo.cursorStrIndex)
             return mousemove.pipe(takeUntil(mouseup))
           } else {
             Editor.cursor.hideCursor()
@@ -60,6 +59,10 @@ export default class JSContent {
         return
       }
       me.moveToClickPoint(e, 'up')
+      if (timer) {
+        clearInterval(timer)
+        timer = null
+      }
       console.log(Editor.cursorInfo)
     })
 
@@ -88,39 +91,88 @@ export default class JSContent {
       lineHeight,
       JSEditor,
       cursor,
+      cursorInfo,
       scrollBar,
       gutterWidth,
       editorInfo,
       scrollBarInfo,
       textPerLine,
-      JSHorizonScroll
+      JSHorizonScroll,
+      scrollThickness,
+      rollRange,
+      contentInfo
     } = Editor
     const { verticalScrollTop, verticalRate, horizonScrollLeft, horizonRate } = scrollBarInfo
-    const curLine = Math.max(Math.floor((e.clientY + verticalScrollTop * verticalRate - editorInfo.top) / lineHeight), 0),
+
+    const curLine = Math.max(
+        Math.floor((e.clientY + verticalScrollTop * verticalRate - editorInfo.top) / lineHeight),
+        0
+      ),
       clientY = curLine * lineHeight + lineHeight / 2 - verticalScrollTop * verticalRate,
       range = document.caretRangeFromPoint(e.clientX, clientY + editorInfo.top)
-    
+
     if (JSEditor.contains(e.target)) {
       const endContainer = range.endContainer
-      console.log(editorInfo)
-      console.log(endContainer)
-      console.log(curLine)
-      console.log(e.clientY)
+      const parentNode = endContainer.parentNode
+      const relativeX = e.clientX - editorInfo.left
+      const rollStart = editorInfo.width - rollRange - scrollThickness
+      const rollEnd = editorInfo.width - scrollThickness
+      console.log(e.clientX - editorInfo.left)
+      console.log(editorInfo.width - rollRange - scrollThickness)
+      console.log(editorInfo.width - scrollThickness)
+      if (relativeX >= rollStart && relativeX < rollEnd) {
+        const viewStart = scrollBarInfo.horizonScrollLeft * scrollBarInfo.horizonRate
+        const viewEnd = scrollBarInfo.horizonScrollLeft * scrollBarInfo.horizonRate + editorInfo.width - gutterWidth
+        console.log(viewStart, viewEnd)
+        console.log(textPerLine[curLine])
+        console.log(Editor.getTargetWidth(textPerLine[curLine]))
+        console.log(editorInfo.width - gutterWidth - scrollBarInfo.horizonScrollLength)
+        console.log(scrollBarInfo)
+        if (Editor.getTargetWidth(textPerLine[curLine]) + contentInfo.rightGap + scrollThickness > viewEnd) {
+          if (!timer) {
+            const previousTextLength = this.Editor.getPreviousTextLength(parentNode)
+
+            let cursorStrIndex = previousTextLength + range.endOffset
+
+            const txt = textPerLine[curLine].slice(0, cursorStrIndex),
+              width = this.Editor.getTargetWidth(txt)
+
+            cursor.moveCursor(width + gutterWidth, curLine * lineHeight)
+            timer = setInterval(function() {
+              cursorStrIndex++
+              cursor.setCursorStrIndex(cursorStrIndex)
+              const txt = textPerLine[curLine].slice(0, cursorStrIndex)
+              const width = Editor.getTargetWidth(txt)
+
+              cursor.moveCursor(width + gutterWidth, curLine * lineHeight)
+              scrollBar.moveHorizon((cursorInfo.left - editorInfo.width + 20) / horizonRate)
+              if (cursorStrIndex === textPerLine[curLine].length) {
+                clearInterval(timer)
+                timer = null
+              }
+            }, 50)
+          }
+
+          return
+        }
+      }
+      if (timer) {
+        clearInterval(timer)
+        timer = null
+      }
       let cursorStrIndex = null
       if (endContainer.nodeType === endContainer.TEXT_NODE) {
-        const parentNode = endContainer.parentNode
-   
         if (parentNode.className === 'JSGutter') {
           cursorStrIndex = 0
           cursor.moveToLineStart(curLine)
         } else {
           const previousTextLength = this.Editor.getPreviousTextLength(parentNode)
-     
+
           cursorStrIndex = previousTextLength + range.endOffset
 
           const txt = textPerLine[curLine].slice(0, cursorStrIndex),
             width = this.Editor.getTargetWidth(txt)
-          
+
           cursor.moveCursor(width + gutterWidth, curLine * lineHeight)
         }
       } else {
@@ -173,7 +225,7 @@ export default class JSContent {
 
     let cursorStrIndex = cursorInfo.cursorStrIndex
     let cursorLineIndex = cursorInfo.cursorLineIndex
-  
+
     of(e)
       .pipe(
         filter(e => {
@@ -303,7 +355,7 @@ export default class JSContent {
     Editor.textPerLine.forEach((it, index) => {
       const JSGutter = document.createElement('div')
       JSGutter.className = 'JSGutter'
-  
+
       JSGutter.innerText = index + 1
       fragment.appendChild(JSGutter)
     })
@@ -325,9 +377,7 @@ export default class JSContent {
     Editor.JSLineWrapper.appendChild(renderJSLine(Editor, textPerLine, startIndex, endIndex))
   }
 
-  renderSelectedArea () {
-
-  }
+  renderSelectedArea() {}
 
   setLineWrapperHeight() {
     const height = this.Editor.textPerLine.length * this.Editor.lineHeight
