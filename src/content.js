@@ -7,6 +7,11 @@ import './content.scss'
 
 //当鼠标处于右边自动滚动的定时器
 let timer
+let timerClient = {
+  x: null,
+  y: null
+}
+let timerLine = null
 
 export default class JSContent {
   constructor(Editor) {
@@ -58,11 +63,12 @@ export default class JSContent {
         Editor.scrollBarInfo.mouseScroll = false
         return
       }
-      me.moveToClickPoint(e, 'up')
       if (timer) {
         clearInterval(timer)
         timer = null
+        timerLine = null
       }
+      me.moveToClickPoint(e, 'up')
     })
 
     const mousewheel = fromEvent(JSContent, 'mousewheel')
@@ -101,7 +107,7 @@ export default class JSContent {
       rollRange,
       contentInfo
     } = Editor
-    const { verticalScrollTop, verticalRate, horizonScrollLeft, horizonRate } = scrollBarInfo
+    const { verticalScrollTop, verticalRate, horizonScrollLeft, horizonRate, horizonScrollLength } = scrollBarInfo
 
     const curLine = Math.max(
         Math.floor((e.clientY + verticalScrollTop * verticalRate - editorInfo.top) / lineHeight),
@@ -117,65 +123,88 @@ export default class JSContent {
       const rollRightEnd = editorInfo.width - scrollThickness
       const rollLeftStart = gutterWidth
       const rollLeftEnd = gutterWidth + rollRange * 2
-      const viewStart = scrollBarInfo.horizonScrollLeft * scrollBarInfo.horizonRate
-      const viewEnd = scrollBarInfo.horizonScrollLeft * scrollBarInfo.horizonRate + editorInfo.width - gutterWidth
-      if (relativeX >= rollRightStart && relativeX < rollRightEnd) {
-        if (Editor.getTargetWidth(textPerLine[curLine]) + contentInfo.rightGap + scrollThickness > viewEnd) {
+      const viewStart = horizonScrollLeft * horizonRate
+      const viewEnd = horizonScrollLeft * horizonRate + editorInfo.width - gutterWidth
+      if (relativeX >= rollRightStart && relativeX < rollRightEnd && (timerLine === curLine || timerLine === null) && way !== 'up') {
+        const maxScrollLeft = editorInfo.width - gutterWidth - horizonScrollLength
+        if (Editor.getTargetWidth(textPerLine[curLine]) + contentInfo.rightGap + scrollThickness > viewEnd && (maxScrollLeft > horizonScrollLeft)) {
+          timerClient = {
+            x: e.clientX,
+            y: e.clientY
+          }
           if (!timer) {
-            const previousTextLength = this.Editor.getPreviousTextLength(parentNode)
-
-            let cursorStrIndex = previousTextLength + range.endOffset
-
-            const txt = textPerLine[curLine].slice(0, cursorStrIndex),
-              width = this.Editor.getTargetWidth(txt)
-
-            cursor.moveCursor(width + gutterWidth, curLine * lineHeight)
+            timerLine = curLine
+            let currentScrollLeft = horizonScrollLeft
+           
+            const maxWidth = this.Editor.getTargetWidth(textPerLine[curLine]) + gutterWidth
+            
+            // cursor.moveCursor(width + gutterWidth, curLine * lineHeight)
+            
             timer = setInterval(function() {
-              cursorStrIndex++
-              cursor.setCursorStrIndex(cursorStrIndex)
-              const txt = textPerLine[curLine].slice(0, cursorStrIndex)
-              const width = Editor.getTargetWidth(txt)
-
-              cursor.moveCursor(width + gutterWidth, curLine * lineHeight)
-              scrollBar.moveHorizon((cursorInfo.left - editorInfo.width + 20) / horizonRate)
-              if (cursorStrIndex === textPerLine[curLine].length) {
+              currentScrollLeft += 5
+              cursor.moveCursor(
+                Math.min(timerClient.x - editorInfo.left + currentScrollLeft * horizonRate, maxWidth),
+                curLine * lineHeight
+              )
+              scrollBar.moveHorizon(Math.min(maxScrollLeft, currentScrollLeft))
+              if (currentScrollLeft >= maxScrollLeft) {
                 clearInterval(timer)
                 timer = null
+                timerLine = null
+                const range = document.caretRangeFromPoint(timerClient.x, clientY + editorInfo.top)
+                const endContainer = range.endContainer
+                const parentNode = endContainer.parentNode
+                const previousTextLength = Editor.getPreviousTextLength(parentNode)
+
+                let cursorStrIndex = previousTextLength + range.endOffset
+
+                const txt = textPerLine[curLine].slice(0, cursorStrIndex),
+                  width = Editor.getTargetWidth(txt)
+          
+                cursor.moveCursor(width + gutterWidth, curLine * lineHeight)
               }
-            }, 50)
+            }, 15)
           }
           return
         }
       }
 
-      if (relativeX >= rollLeftStart && relativeX < rollLeftEnd) {
-        if (Editor.getTargetWidth(textPerLine[curLine]) > viewStart) {
+      if (relativeX >= rollLeftStart && relativeX < rollLeftEnd && (timerLine === curLine || timerLine === null) && way !== 'up') {
+        if (horizonScrollLeft > 0) {
+          timerClient = {
+            x: e.clientX,
+            y: e.clientY
+          }
           if (!timer) {
-            const previousTextLength = this.Editor.getPreviousTextLength(parentNode)
-
-            let cursorStrIndex = previousTextLength + range.endOffset
-
-            const txt = textPerLine[curLine].slice(0, cursorStrIndex),
-              width = this.Editor.getTargetWidth(txt)
-
-            cursor.moveCursor(width + gutterWidth, curLine * lineHeight)
+            timerLine = curLine
+            let currentScrollLeft = horizonScrollLeft
 
             timer = setInterval(function() {
-              cursorStrIndex--
-              cursor.setCursorStrIndex(cursorStrIndex)
-              const txt = textPerLine[curLine].slice(0, cursorStrIndex)
-              const width = Editor.getTargetWidth(txt)
+              currentScrollLeft -= 5
 
-              cursor.moveCursor(width + gutterWidth, curLine * lineHeight)
-              scrollBar.moveHorizon(
-                Math.min(Math.max((cursorInfo.left - gutterWidth - 20) / horizonRate, 0), horizonScrollLeft)
+              cursor.moveCursor(
+                Math.max(timerClient.x - editorInfo.left + currentScrollLeft * horizonRate, gutterWidth),
+                curLine * lineHeight
               )
+              scrollBar.moveHorizon(Math.max(currentScrollLeft, 0))
 
-              if ((cursorInfo.left - gutterWidth - 20) / horizonRate <= 0) {
+              if (currentScrollLeft <= 0) {
                 clearInterval(timer)
                 timer = null
+                timerLine = null
+                const range = document.caretRangeFromPoint(timerClient.x, clientY + editorInfo.top)
+                const endContainer = range.endContainer
+                const parentNode = endContainer.parentNode
+                const previousTextLength = Editor.getPreviousTextLength(parentNode)
+
+                let cursorStrIndex = previousTextLength + range.endOffset
+
+                const txt = textPerLine[curLine].slice(0, cursorStrIndex),
+                  width = Editor.getTargetWidth(txt)
+          
+                cursor.moveCursor(width + gutterWidth, curLine * lineHeight)
               }
-            }, 30)
+            }, 15)
           }
           return
         }
@@ -183,6 +212,7 @@ export default class JSContent {
       if (timer) {
         clearInterval(timer)
         timer = null
+        timerLine = null
       }
       let cursorStrIndex = null
       if (endContainer.nodeType === endContainer.TEXT_NODE) {

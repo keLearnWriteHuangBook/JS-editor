@@ -264,7 +264,6 @@ export default class scrollBar {
   }
 
   moveHorizon(left) {
-    console.log(left)
     const { JSHorizonScrollSlider, JSLineWrapper, scrollBarInfo, cursor } = this.Editor
   
     css(JSHorizonScrollSlider, {
