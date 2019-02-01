@@ -107,7 +107,14 @@ export default class JSContent {
       rollRange,
       contentInfo
     } = Editor
-    const { verticalScrollTop, verticalRate, horizonScrollLeft, horizonRate, horizonScrollLength } = scrollBarInfo
+    const {
+      verticalScrollTop,
+      verticalRate,
+      verticalScrollLength,
+      horizonScrollLeft,
+      horizonRate,
+      horizonScrollLength
+    } = scrollBarInfo
 
     const curLine = Math.max(
         Math.floor((e.clientY + verticalScrollTop * verticalRate - editorInfo.top) / lineHeight),
@@ -125,9 +132,23 @@ export default class JSContent {
       const rollLeftEnd = gutterWidth + rollRange * 2
       const viewStart = horizonScrollLeft * horizonRate
       const viewEnd = horizonScrollLeft * horizonRate + editorInfo.width - gutterWidth
-      if (relativeX >= rollRightStart && relativeX < rollRightEnd && (timerLine === curLine || timerLine === null) && way !== 'up') {
-        const maxScrollLeft = editorInfo.width - gutterWidth - horizonScrollLength
-        if (Editor.getTargetWidth(textPerLine[curLine]) + contentInfo.rightGap + scrollThickness > viewEnd && (maxScrollLeft > horizonScrollLeft)) {
+      if (
+        relativeX >= rollRightStart &&
+        relativeX < rollRightEnd &&
+        (timerLine === curLine || timerLine === null) &&
+        way !== 'up'
+      ) {
+        const maxScrollLeft = Math.min(
+          editorInfo.width - gutterWidth - horizonScrollLength,
+          (this.Editor.getTargetWidth(textPerLine[curLine]) - (editorInfo.width - gutterWidth) + 20) / horizonRate
+        )
+        console.log(this.Editor.getTargetWidth(textPerLine[curLine]) / horizonRate)
+        console.log(editorInfo.width - gutterWidth - horizonScrollLength)
+        console.log(maxScrollLeft)
+        if (
+          Editor.getTargetWidth(textPerLine[curLine]) + contentInfo.rightGap + scrollThickness > viewEnd &&
+          maxScrollLeft > horizonScrollLeft
+        ) {
           timerClient = {
             x: e.clientX,
             y: e.clientY
@@ -135,11 +156,11 @@ export default class JSContent {
           if (!timer) {
             timerLine = curLine
             let currentScrollLeft = horizonScrollLeft
-           
+
             const maxWidth = this.Editor.getTargetWidth(textPerLine[curLine]) + gutterWidth
-            
+
             // cursor.moveCursor(width + gutterWidth, curLine * lineHeight)
-            
+
             timer = setInterval(function() {
               currentScrollLeft += 5
               cursor.moveCursor(
@@ -160,7 +181,7 @@ export default class JSContent {
 
                 const txt = textPerLine[curLine].slice(0, cursorStrIndex),
                   width = Editor.getTargetWidth(txt)
-          
+
                 cursor.moveCursor(width + gutterWidth, curLine * lineHeight)
               }
             }, 15)
@@ -169,7 +190,12 @@ export default class JSContent {
         }
       }
 
-      if (relativeX >= rollLeftStart && relativeX < rollLeftEnd && (timerLine === curLine || timerLine === null) && way !== 'up') {
+      if (
+        relativeX >= rollLeftStart &&
+        relativeX < rollLeftEnd &&
+        (timerLine === curLine || timerLine === null) &&
+        way !== 'up'
+      ) {
         if (horizonScrollLeft > 0) {
           timerClient = {
             x: e.clientX,
@@ -201,7 +227,7 @@ export default class JSContent {
 
                 const txt = textPerLine[curLine].slice(0, cursorStrIndex),
                   width = Editor.getTargetWidth(txt)
-          
+
                 cursor.moveCursor(width + gutterWidth, curLine * lineHeight)
               }
             }, 15)
@@ -238,7 +264,7 @@ export default class JSContent {
           cursor.moveToLineEnd(textPerLine.length - 1)
         }
 
-        if (endContainer.className.indexOf('KEditorScroll') > -1) {
+        if (endContainer.className.indexOf('KEditorVerticalScroll') > -1 && curLine <= textPerLine.length - 1) {
           cursorStrIndex = textPerLine[curLine].length
           cursor.moveToLineEnd(curLine)
         }
@@ -270,21 +296,74 @@ export default class JSContent {
       const viewStart = scrollBarInfo.horizonScrollLeft * scrollBarInfo.horizonRate
       const viewEnd = scrollBarInfo.horizonScrollLeft * scrollBarInfo.horizonRate + editorInfo.width - gutterWidth
       const relativeX = e.clientX - editorInfo.left
-      if (curLine <= textPerLine.length - 1) {
-        if (relativeX < viewStart) {
-          Editor.cursor.moveToLineStart(curLine)
-          scrollBar.moveHorizon(0)
-          cursor.setCursorStrIndex(0)
-        } else {
-          Editor.cursor.moveToLineEnd(curLine)
-          if (this.Editor.getTargetWidth(textPerLine[curLine]) > editorInfo.width - gutterWidth) {
-            scrollBar.moveHorizon(
-              (this.Editor.getTargetWidth(textPerLine[curLine]) - (editorInfo.width - gutterWidth) + 20) / horizonRate
+      const relativeY = e.clientY - editorInfo.top
+
+      if (relativeY < 0 && way !== 'up') {
+        if (!timer) {
+          let currentScrollTop = verticalScrollTop
+          timer = setInterval(function() {
+            currentScrollTop -= 5
+
+            let calcScrollTop = Math.max(currentScrollTop, 0)
+
+            scrollBar.moveVertical(calcScrollTop)
+            let nextCursorTop = Math.floor((calcScrollTop * verticalRate) / lineHeight) * lineHeight
+            cursor.moveCursor(gutterWidth, nextCursorTop)
+
+            if (calcScrollTop <= 0) {
+              clearInterval(timer)
+              timer = null
+              timerLine = null
+            }
+          }, 15)
+
+          return
+        }
+      }
+
+      if (relativeY >= editorInfo.height - rollRange * 2 && way !== 'up') {
+        if (!timer) {
+          let currentScrollTop = verticalScrollTop
+          timer = setInterval(function() {
+            currentScrollTop += 5
+            let calcScrollTop = Math.min(currentScrollTop, editorInfo.height - verticalScrollLength)
+            scrollBar.moveVertical(calcScrollTop)
+
+            let nextCursorLine = Math.min(
+              Math.floor((calcScrollTop * verticalRate + editorInfo.height) / lineHeight),
+              textPerLine.length - 1
             )
-          } else {
+            let nextCursorTop = nextCursorLine * lineHeight
+
+            cursor.moveCursor(Editor.getTargetWidth(textPerLine[nextCursorLine]) + gutterWidth, nextCursorTop)
+
+            if (calcScrollTop <= 0) {
+              clearInterval(timer)
+              timer = null
+              timerLine = null
+            }
+          }, 15)
+
+          return
+        }
+      }
+      if (relativeY > 0 && relativeY < editorInfo.height - rollRange * 2) {
+        if (curLine <= textPerLine.length - 1) {
+          if (relativeX < viewStart) {
+            Editor.cursor.moveToLineStart(curLine)
             scrollBar.moveHorizon(0)
+            cursor.setCursorStrIndex(0)
+          } else {
+            Editor.cursor.moveToLineEnd(curLine)
+            if (this.Editor.getTargetWidth(textPerLine[curLine]) > editorInfo.width - gutterWidth) {
+              scrollBar.moveHorizon(
+                (this.Editor.getTargetWidth(textPerLine[curLine]) - (editorInfo.width - gutterWidth) + 20) / horizonRate
+              )
+            } else {
+              scrollBar.moveHorizon(0)
+            }
+            cursor.setCursorStrIndex(textPerLine[curLine].length)
           }
-          cursor.setCursorStrIndex(textPerLine[curLine].length)
         }
       }
     }

@@ -32,7 +32,7 @@ export default class scrollBar {
     const { gutterWidth, scrollThickness, JSEditor } = Editor
     const JSHorizonScroll = document.createElement('div')
     Editor.JSHorizonScroll = JSHorizonScroll
-    JSHorizonScroll.className = 'JSHorizonScroll KEditorScroll'
+    JSHorizonScroll.className = 'JSHorizonScroll KEditorHorizonScroll'
 
     css(JSHorizonScroll, {
       width: `calc(100% - ${gutterWidth}px)`,
@@ -42,7 +42,7 @@ export default class scrollBar {
 
     const JSHorizonScrollSlider = document.createElement('div')
     Editor.JSHorizonScrollSlider = JSHorizonScrollSlider
-    JSHorizonScrollSlider.className = 'JSHorizonScrollSlider KEditorScroll'
+    JSHorizonScrollSlider.className = 'JSHorizonScrollSlider KEditorHorizonScroll'
     JSHorizonScroll.appendChild(JSHorizonScrollSlider)
 
     JSEditor.appendChild(JSHorizonScroll)
@@ -75,7 +75,7 @@ export default class scrollBar {
 
     const JSVerticalScroll = document.createElement('div')
     Editor.JSVerticalScroll = JSVerticalScroll
-    JSVerticalScroll.className = 'JSVerticalScroll KEditorScroll'
+    JSVerticalScroll.className = 'JSVerticalScroll KEditorVerticalScroll'
 
     css(JSVerticalScroll, {
       width: scrollThickness + 'px'
@@ -83,7 +83,7 @@ export default class scrollBar {
 
     const JSVerticalScrollSlider = document.createElement('div')
     Editor.JSVerticalScrollSlider = JSVerticalScrollSlider
-    JSVerticalScrollSlider.className = 'JSVerticalScrollSlider KEditorScroll'
+    JSVerticalScrollSlider.className = 'JSVerticalScrollSlider KEditorVerticalScroll'
     JSVerticalScroll.appendChild(JSVerticalScrollSlider)
 
     JSEditor.appendChild(JSVerticalScroll)
