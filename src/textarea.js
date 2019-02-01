@@ -11,6 +11,7 @@ export default class Textarea {
   }
 
   createTextarea() {
+    const me = this
     const Editor = this.Editor
     const JSTextareaWrap = document.createElement('div')
     Editor.JSTextareaWrap = JSTextareaWrap
@@ -79,6 +80,8 @@ export default class Textarea {
             textPerLine[cursorLineIndex],
             ' '.repeat(tabBlank)
           )
+          console.log(Editor.textPerLine.concat([]))
+          console.log(textPerLine.concat([]))
           cursor.setCursorStrIndex(cursorStrIndex + tabBlank)
           cursor.moveCursor(
             gutterWidth +
@@ -89,15 +92,12 @@ export default class Textarea {
           Editor.content.renderLine()
           Editor.content.setLineWrapperWidth()
           scrollBar.setHorizonWidth()
+          me.preInputAction()
         }
         if (e.keyCode === 8) {
           const { gutterWidth, tabBlank, cursor, textPerLine, scrollBar } = Editor
           const { cursorStrIndex, cursorLineIndex, top } = Editor.cursorInfo
           e.preventDefault()
-          console.log(cursorStrIndex);
-          console.log(cursorLineIndex);
-          console.log(textPerLine[cursorLineIndex]);
-          console.log(textPerLine[cursorLineIndex].slice(0, cursorStrIndex));
         }
       })
     })

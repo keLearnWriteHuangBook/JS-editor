@@ -142,9 +142,7 @@ export default class JSContent {
           editorInfo.width - gutterWidth - horizonScrollLength,
           (this.Editor.getTargetWidth(textPerLine[curLine]) - (editorInfo.width - gutterWidth) + 20) / horizonRate
         )
-        console.log(this.Editor.getTargetWidth(textPerLine[curLine]) / horizonRate)
-        console.log(editorInfo.width - gutterWidth - horizonScrollLength)
-        console.log(maxScrollLeft)
+           
         if (
           Editor.getTargetWidth(textPerLine[curLine]) + contentInfo.rightGap + scrollThickness > viewEnd &&
           maxScrollLeft > horizonScrollLeft
@@ -263,7 +261,7 @@ export default class JSContent {
           cursorStrIndex = textPerLine[textPerLine.length - 1].length
           cursor.moveToLineEnd(textPerLine.length - 1)
         }
-        // console.log(1)
+    
         if (endContainer.className.indexOf('KEditorVerticalScroll') > -1 && curLine <= textPerLine.length - 1) {
           cursorStrIndex = textPerLine[curLine].length
           cursor.moveToLineEnd(curLine)

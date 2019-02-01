@@ -120,7 +120,7 @@ export default class scrollBar {
     const contentAllWidth = JSLine.getBoundingClientRect().width
     const contentViewWidth = editorInfo.width - gutterWidth
     let length
-    console.log(contentAllWidth)
+ 
     if (contentAllWidth > contentViewWidth) {
       length = (contentViewWidth / contentAllWidth) * 100 + '%'
     } else {
@@ -211,7 +211,7 @@ export default class scrollBar {
         nextLeft = scrollBarInfo.horizonScrollLeft
       } else {
         nextLeft = mousePos - scrollBarInfo.horizonScrollLength / 2
-        console.log('nextLeft' + nextLeft)
+    
         if (nextLeft + scrollBarInfo.horizonScrollLength > editorInfo.width - gutterWidth) {
           nextLeft = editorInfo.width - gutterWidth - scrollBarInfo.horizonScrollLength
         } else if (nextLeft < 0) {
@@ -220,7 +220,7 @@ export default class scrollBar {
       }
     } else {
       nextLeft = scrollBarInfo.horizonScrollLeft + e.clientX - startPos.X
-      console.log('nextLeft' + nextLeft)
+
       if (nextLeft + scrollBarInfo.horizonScrollLength > editorInfo.width - gutterWidth) {
         nextLeft = editorInfo.width - gutterWidth - scrollBarInfo.horizonScrollLength
       } else if (nextLeft < 0) {
@@ -228,7 +228,7 @@ export default class scrollBar {
       }
       startPos.X = e.clientX
     }
-    console.log(nextLeft)
+  
     me.moveHorizon(nextLeft)
   }
 
