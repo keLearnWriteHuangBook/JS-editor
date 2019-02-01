@@ -24,6 +24,9 @@ export default class Cursor {
     // console.log(top)
     let nextLeft = left - scrollBarInfo.horizonScrollLeft * scrollBarInfo.horizonRate
     let nextTop = top - scrollBarInfo.verticalScrollTop * scrollBarInfo.verticalRate
+    console.log(nextTop)
+    console.log(top)
+    console.log(scrollBarInfo.verticalScrollTop)
     // console.log(nextLeft)
     // console.log(nextTop)
     nextLeft < gutterWidth || nextTop + lineHeight < 0 ? this.hideCursor() : this.showCursor()

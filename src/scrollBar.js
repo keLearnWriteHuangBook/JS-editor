@@ -117,6 +117,7 @@ export default class scrollBar {
   setHorizonWidth() {
     const { editorInfo, gutterWidth, JSHorizonScrollSlider, scrollBarInfo } = this.Editor
     const JSLine = document.querySelector('.JSLineWrapper .JSLine')
+   
     const contentAllWidth = JSLine.getBoundingClientRect().width
     const contentViewWidth = editorInfo.width - gutterWidth
     let length

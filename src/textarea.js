@@ -3,6 +3,9 @@ import { takeUntil } from 'rxjs/operators'
 import { css, stringSplice } from './utils'
 import './textarea.scss'
 
+//主要用于判断后退按键是否处于按下状态
+let downKeyCode = null
+
 export default class Textarea {
   constructor(Editor) {
     this.Editor = Editor
@@ -25,6 +28,7 @@ export default class Textarea {
     const focusEvent = fromEvent(JSTextarea, 'focus')
     const blurEvent = fromEvent(JSTextarea, 'blur')
     const keydownEvent = fromEvent(document, 'keydown')
+    const keyupEvent = fromEvent(document, 'keyup')
 
     inputEvent.subscribe(e => {
       const { textPerLine, copyTextPerLine, lineHeight, gutterWidth, cursor } = this.Editor
@@ -71,6 +75,7 @@ export default class Textarea {
 
     focusEvent.subscribe(e => {
       keydownEvent.pipe(takeUntil(blurEvent)).subscribe(e => {
+        downKeyCode = e.keyCode
         if (e.keyCode === 9) {
           const { gutterWidth, tabBlank, cursor, textPerLine, scrollBar } = Editor
           const { cursorStrIndex, cursorLineIndex, top } = Editor.cursorInfo
@@ -80,8 +85,7 @@ export default class Textarea {
             textPerLine[cursorLineIndex],
             ' '.repeat(tabBlank)
           )
-          console.log(Editor.textPerLine.concat([]))
-          console.log(textPerLine.concat([]))
+
           cursor.setCursorStrIndex(cursorStrIndex + tabBlank)
           cursor.moveCursor(
             gutterWidth +
@@ -95,9 +99,77 @@ export default class Textarea {
           me.preInputAction()
         }
         if (e.keyCode === 8) {
-          const { gutterWidth, tabBlank, cursor, textPerLine, scrollBar } = Editor
+          const {
+            gutterWidth,
+            tabBlank,
+            cursor,
+            textPerLine,
+            scrollBar,
+            scrollBarInfo,
+            editorInfo,
+            lineHeight,
+            rollRange
+          } = Editor
           const { cursorStrIndex, cursorLineIndex, top } = Editor.cursorInfo
+          const { horizonScrollLeft, horizonRate, horizonScrollLength, verticalRate, verticalScrollTop, verticalScrollLength } = scrollBarInfo
+
+          let currentCursorStrIndex = cursorStrIndex
+          if (currentCursorStrIndex === 0) {
+            if (cursorLineIndex > 0) {
+              let preUpLine = textPerLine[cursorLineIndex - 1]
+              let preUpLineWidth = Editor.getTargetWidth(preUpLine)
+              currentCursorStrIndex = preUpLine.length
+          
+              textPerLine[cursorLineIndex - 1] += textPerLine[cursorLineIndex]
+              textPerLine.splice(cursorLineIndex, 1)
+              Editor.cursor.setCursorStrIndex(preUpLine.length)
+              Editor.cursor.setCursorLineIndex(cursorLineIndex - 1)
+              Editor.content.renderLine()
+              Editor.content.renderGutter()
+              Editor.content.setLineWrapperWidth()
+              //当滚动条处于最下方时
+              if (verticalScrollTop * verticalRate >= (cursorLineIndex - 1) * lineHeight) {
+                scrollBar.moveVertical(verticalScrollTop - (lineHeight / verticalRate))
+              }
+              scrollBar.setHorizonWidth()
+              scrollBar.setVerticalWidth()
+              //因为verticalRate的变化所以实际verticalScrollTop也发生变化
+              scrollBar.moveVertical(scrollBarInfo.verticalScrollTop * verticalRate / scrollBarInfo.verticalRate)
+              Editor.cursor.moveCursor(preUpLineWidth + gutterWidth, (cursorLineIndex - 1) * lineHeight)
+              if (preUpLineWidth > editorInfo.width - gutterWidth) {
+                scrollBar.moveHorizon((preUpLineWidth - (editorInfo.width - gutterWidth) + 20) / horizonRate)
+              }
+            }
+          } else {
+            const leftText = textPerLine[cursorLineIndex].slice(0, currentCursorStrIndex - 1)
+            const rightText = textPerLine[cursorLineIndex].slice(currentCursorStrIndex)
+           
+            textPerLine[cursorLineIndex] = leftText + rightText
+            Editor.cursor.moveCursor(Editor.getTargetWidth(leftText) + gutterWidth, cursorLineIndex * lineHeight)
+            Editor.cursor.setCursorStrIndex(currentCursorStrIndex - 1)
+            Editor.content.renderLine()
+            Editor.content.setLineWrapperWidth()
+            scrollBar.setHorizonWidth()
+            scrollBar.setVerticalWidth()
+
+            //当光标要移除可视区域时，移动滚动条
+            if (horizonScrollLeft * horizonRate + gutterWidth > 60) {
+              if (Editor.cursorInfo.left - rollRange < (horizonScrollLeft * horizonRate + gutterWidth)) {
+                Editor.scrollBar.moveHorizon((Editor.cursorInfo.left - rollRange - gutterWidth) / horizonRate)
+              }
+            }
+            //当变化后的滚动条，其右边距离超出可视区域时，移动滚动条
+            if (horizonScrollLeft + horizonScrollLength > editorInfo.width - gutterWidth) {
+              Editor.scrollBar.moveHorizon(editorInfo.width - gutterWidth - horizonScrollLength)
+            }
+          }
+
           e.preventDefault()
+        }
+      })
+      keyupEvent.pipe(takeUntil(blurEvent)).subscribe(e => {
+        if (e.keyCode === 8 && downKeyCode === 8) {
+          me.preInputAction()
         }
       })
     })
@@ -112,7 +184,7 @@ export default class Textarea {
       top: top + 'px'
     })
   }
-  
+
   preInputAction() {
     this.Editor.copyTextPerLine = this.Editor.textPerLine.concat([])
     this.Editor.copyCursorInfo = Object.assign({}, this.Editor.cursorInfo)
