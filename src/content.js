@@ -263,7 +263,7 @@ export default class JSContent {
           cursorStrIndex = textPerLine[textPerLine.length - 1].length
           cursor.moveToLineEnd(textPerLine.length - 1)
         }
-
+        console.log(1)
         if (endContainer.className.indexOf('KEditorVerticalScroll') > -1 && curLine <= textPerLine.length - 1) {
           cursorStrIndex = textPerLine[curLine].length
           cursor.moveToLineEnd(curLine)
