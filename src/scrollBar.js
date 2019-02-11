@@ -208,7 +208,8 @@ export default class scrollBar {
     let nextLeft
   
     if (startPos === null) {
-      if (e.target.className === 'JSHorizonScrollSlider') {
+      if (e.target.className.indexOf('JSHorizonScrollSlider') > -1) {
+        console.log(11)
         nextLeft = scrollBarInfo.horizonScrollLeft
       } else {
         nextLeft = mousePos - scrollBarInfo.horizonScrollLength / 2
@@ -239,7 +240,7 @@ export default class scrollBar {
     let nextTop
   
     if (startPos === null) {
-      if (e.target.className === 'JSVerticalScrollSlider') {
+      if (e.target.className.indexOf('JSVerticalScrollSlider') > -1) {
         nextTop = scrollBarInfo.verticalScrollTop
       } else {
         nextTop = mousePos - scrollBarInfo.verticalScrollLength / 2

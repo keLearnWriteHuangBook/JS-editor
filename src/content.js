@@ -132,6 +132,7 @@ export default class JSContent {
       const rollLeftEnd = gutterWidth + rollRange * 2
       const viewStart = horizonScrollLeft * horizonRate
       const viewEnd = horizonScrollLeft * horizonRate + editorInfo.width - gutterWidth
+      //往右移
       if (
         relativeX >= rollRightStart &&
         relativeX < rollRightEnd &&
@@ -142,7 +143,7 @@ export default class JSContent {
           editorInfo.width - gutterWidth - horizonScrollLength,
           (this.Editor.getTargetWidth(textPerLine[curLine]) - (editorInfo.width - gutterWidth) + 20) / horizonRate
         )
-           
+
         if (
           Editor.getTargetWidth(textPerLine[curLine]) + contentInfo.rightGap + scrollThickness > viewEnd &&
           maxScrollLeft > horizonScrollLeft
@@ -188,6 +189,7 @@ export default class JSContent {
         }
       }
 
+      //往左移
       if (
         relativeX >= rollLeftStart &&
         relativeX < rollLeftEnd &&
@@ -261,7 +263,7 @@ export default class JSContent {
           cursorStrIndex = textPerLine[textPerLine.length - 1].length
           cursor.moveToLineEnd(textPerLine.length - 1)
         }
-    
+
         if (endContainer.className.indexOf('KEditorVerticalScroll') > -1 && curLine <= textPerLine.length - 1) {
           cursorStrIndex = textPerLine[curLine].length
           cursor.moveToLineEnd(curLine)
@@ -295,7 +297,7 @@ export default class JSContent {
       const viewEnd = scrollBarInfo.horizonScrollLeft * scrollBarInfo.horizonRate + editorInfo.width - gutterWidth
       const relativeX = e.clientX - editorInfo.left
       const relativeY = e.clientY - editorInfo.top
-
+      //往上移
       if (relativeY < 0 && way !== 'up') {
         if (!timer) {
           let currentScrollTop = verticalScrollTop
@@ -318,8 +320,8 @@ export default class JSContent {
           return
         }
       }
-
-      if (relativeY >= editorInfo.height - rollRange * 2 && way !== 'up') {
+      //往下移
+      if (relativeY >= editorInfo.height && way !== 'up') {
         if (!timer) {
           let currentScrollTop = verticalScrollTop
           timer = setInterval(function() {
@@ -345,7 +347,7 @@ export default class JSContent {
           return
         }
       }
-      if (relativeY > 0 && relativeY < editorInfo.height - rollRange * 2) {
+      if (relativeY > 0 && relativeY < editorInfo.height) {
         if (curLine <= textPerLine.length - 1) {
           if (relativeX < viewStart) {
             Editor.cursor.moveToLineStart(curLine)
@@ -364,6 +366,23 @@ export default class JSContent {
           }
         }
       }
+    }
+    if (way === 'down') {
+      const cursorInfo = Editor.cursorInfo
+      console.log(Object.assign({}, Editor.cursorInfo))
+      if (!e.shiftActive) {
+        Editor.startPos = {
+          cursorLineIndex: cursorInfo.cursorLineIndex,
+          cursorStrIndex: cursorInfo.cursorStrIndex
+        }
+      }
+    } else if (way === 'up') {
+      const cursorInfo = Editor.cursorInfo
+      Editor.endPos = {
+        cursorLineIndex: cursorInfo.cursorLineIndex,
+        cursorStrIndex: cursorInfo.cursorStrIndex
+      }
+      console.log(Object.assign({}, Editor.cursorInfo))
     }
     Editor.textarea.preInputAction()
   }
