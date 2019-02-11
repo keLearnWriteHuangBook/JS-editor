@@ -18,6 +18,12 @@ export default class Editor {
     const JSEditor = document.createElement('div')
     this.JSEditor = JSEditor
     JSEditor.className = 'JSEditor'
+    const userAgent = navigator.userAgent.toLowerCase()
+    if (userAgent.indexOf('mac')) {
+      this.userAgent = 'mac'
+    } else if (userAgent.indexOf('win')) {
+      this.userAgent.indexOf('windows')
+    }
 
     css(JSEditor, {
       fontSize: this.fontSize + 'px',

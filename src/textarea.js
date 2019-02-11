@@ -1,6 +1,6 @@
 import { fromEvent } from 'rxjs'
 import { takeUntil } from 'rxjs/operators'
-import { css, stringSplice } from './utils'
+import { css, stringSplice, removeDom } from './utils'
 import './textarea.scss'
 
 //主要用于判断后退按键是否处于按下状态
@@ -27,8 +27,13 @@ export default class Textarea {
     const inputEvent = fromEvent(JSTextarea, 'input')
     const focusEvent = fromEvent(JSTextarea, 'focus')
     const blurEvent = fromEvent(JSTextarea, 'blur')
+    const pasteEvent = fromEvent(JSTextarea, 'paste')
     const keydownEvent = fromEvent(document, 'keydown')
     const keyupEvent = fromEvent(document, 'keyup')
+    let isPaste = false
+    pasteEvent.subscribe(e => {
+      isPaste = true
+    })
 
     inputEvent.subscribe(e => {
       const { textPerLine, copyTextPerLine, lineHeight, gutterWidth, cursor } = this.Editor
@@ -39,7 +44,7 @@ export default class Textarea {
       const valueArr = e.target.value.split(/\r\n|\r|\n/)
       const cursorPreText = copyTextPerLine[cursorLineIndex].slice(0, cursorStrIndex)
       const cursorAfterText = copyTextPerLine[cursorLineIndex].slice(cursorStrIndex)
-
+  
       if (valueArr.length === 1) {
         let text = cursorPreText + valueArr[0] + cursorAfterText
         textPerLine[cursorLineIndex] = text
@@ -58,9 +63,15 @@ export default class Textarea {
         })
 
         cursorTop = (cursorLineIndex + valueArr.length - 1) * lineHeight
-        cursorLeft = gutterWidth
         cursor.setCursorLineIndex(cursorTop / lineHeight)
-        cursor.setCursorStrIndex(0)
+        if (isPaste) {
+          let lastValue = valueArr.pop()
+          cursor.setCursorStrIndex(lastValue.length)
+          cursorLeft = gutterWidth + Editor.getTargetWidth(lastValue)
+        } else {
+          cursorLeft = gutterWidth
+          cursor.setCursorStrIndex(0)
+        }
 
         this.preInputAction()
       }
@@ -71,12 +82,14 @@ export default class Textarea {
       this.Editor.content.renderLine()
       this.Editor.content.setLineWrapperWidth()
       this.Editor.scrollBar.setHorizonWidth()
+      isPaste = false
     })
 
     focusEvent.subscribe(e => {
       keydownEvent.pipe(takeUntil(blurEvent)).subscribe(e => {
         downKeyCode = e.keyCode
-        if (e.keyCode === 9) {
+       
+        if (downKeyCode === 9) {
           const { gutterWidth, tabBlank, cursor, textPerLine, scrollBar } = Editor
           const { cursorStrIndex, cursorLineIndex, top } = Editor.cursorInfo
           e.preventDefault()
@@ -98,7 +111,7 @@ export default class Textarea {
           scrollBar.setHorizonWidth()
           me.preInputAction()
         }
-        if (e.keyCode === 8) {
+        if (downKeyCode === 8) {
           const {
             gutterWidth,
             tabBlank,
@@ -166,6 +179,19 @@ export default class Textarea {
 
           e.preventDefault()
         }
+        if (downKeyCode === 67) {
+          const userAgent = Editor.userAgent
+          e.preventDefault()
+          if (userAgent === 'mac') {
+            if (e.metaKey) {
+              me.copyText()
+            }
+          } else if (userAgent === 'windows') {
+            if (e.ctrlKey) {
+              me.copyText()
+            }
+          }
+        }
       })
       keyupEvent.pipe(takeUntil(blurEvent)).subscribe(e => {
         if (e.keyCode === 8 && downKeyCode === 8) {
@@ -183,6 +209,58 @@ export default class Textarea {
       left: left + 'px',
       top: top + 'px'
     })
+  }
+
+  copyText() {
+    const Editor = this.Editor
+    const { startPos, endPos, textPerLine } = Editor
+    console.log(startPos)
+    console.log(endPos)
+    let realityStartPos, realityEndPos
+    if (startPos.top < endPos.top) {
+      realityStartPos = startPos
+      realityEndPos = endPos
+    } else if (startPos.top > endPos.top) {
+      realityStartPos = endPos
+      realityEndPos = startPos
+    } else if (startPos.top === endPos.top) {
+      if (startPos.left < endPos.left) {
+        realityStartPos = startPos
+        realityEndPos = endPos
+      } else if (startPos.left > endPos.left) {
+        realityStartPos = endPos
+        realityEndPos = startPos
+      } else {
+        return
+      }
+    }
+    const inputDom = document.createElement('textarea')
+    let value = ''
+    for (let i = realityStartPos.cursorLineIndex; i <= realityEndPos.cursorLineIndex; i++) {
+      if (realityStartPos.cursorLineIndex === realityEndPos.cursorLineIndex) {
+        value += textPerLine[i].slice(realityStartPos.cursorStrIndex, realityEndPos.cursorStrIndex)
+        continue
+      }
+      if (i === realityStartPos.cursorLineIndex) {
+        value += textPerLine[i].slice(realityStartPos.cursorStrIndex) + '\n'
+        continue
+      }
+
+      if (i === realityEndPos.cursorLineIndex) {
+        value += textPerLine[i].slice(0, realityEndPos.cursorStrIndex)
+        continue
+      }
+      value += textPerLine[i] + '\n'
+    }
+    inputDom.value = value
+    css(inputDom, {
+      height: 0,
+      width: 0
+    })
+    document.body.appendChild(inputDom)
+    inputDom.select()
+    document.execCommand('copy')
+    removeDom(inputDom)
   }
 
   preInputAction() {

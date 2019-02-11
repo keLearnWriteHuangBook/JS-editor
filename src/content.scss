@@ -27,8 +27,7 @@
             width: 1e+06px;
             height: 1e+06px;
             .JSLineWrapper {
-                position: absolute;
-                // width: 687px;
+                position: absolute; // width: 687px;
                 // height:920px;
                 .JSLine {
                     // margin: 0 8px 0 0;
@@ -40,36 +39,52 @@
                     position: absolute;
                     .JSLineSpan {
                         position: relative;
-                        .kTextDeclaration, .kTextThis, .kTextBool, .kTextFunction, .kTextGlobal, .kTextNew, .kTextDataType{
+                        .kTextDeclaration,
+                        .kTextThis,
+                        .kTextBool,
+                        .kTextFunction,
+                        .kTextGlobal,
+                        .kTextNew,
+                        .kTextDataType {
                             color: #4098e0;
                         }
-                        .kTextVariable{
+                        .kTextVariable {
                             color: #90d2f5;
                         }
-                        .kTextBracket{
+                        .kTextBracket {
                             color: #fff;
                         }
-                        .kTextComma{
+                        .kTextComma {
                             color: #fff;
                         }
-                        .kTextEqual{
+                        .kTextEqual {
                             color: #fff;
                         }
-                        .kTextString{
+                        .kTextString {
                             color: rgba(199, 140, 116, 1);
                         }
-                        .kTextAnnotation{
+                        .kTextAnnotation {
                             color: rgba(105, 151, 84, 1);
                         }
-                        .kTextNumber{
+                        .kTextNumber {
                             color: rgba(180, 204, 167, 1);
                         }
-                        .kTextLoopJudge{
+                        .kTextLoopJudge {
                             color: #d27bda;
                         }
-                        .kTextOther{
+                        .kTextOther {
                             color: #fff;
                         }
+                    }
+                }
+                .JSLineSelectedWrapper {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    .JSLineSelected {
+                        background: #84afe2;
+                        opacity: 0.3;
+                        position: absolute;
                     }
                 }
             }

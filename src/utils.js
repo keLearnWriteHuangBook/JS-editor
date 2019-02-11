@@ -7,6 +7,8 @@ export function css(dom, obj) {
 }
 
 export function removeDom(dom) {
+  console.log(dom)
+  console.log(dom.parentNode)
   if (dom instanceof HTMLElement) {
     dom.parentNode.removeChild(dom)
   } else if (dom instanceof HTMLCollection) {

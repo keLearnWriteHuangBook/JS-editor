@@ -266,7 +266,7 @@ export default class scrollBar {
   }
 
   moveHorizon(left) {
-    const { JSHorizonScrollSlider, JSLineWrapper, scrollBarInfo, cursor } = this.Editor
+    const { JSHorizonScrollSlider, JSLineWrapper, scrollBarInfo, cursor, content } = this.Editor
   
     css(JSHorizonScrollSlider, {
       left: left + 'px'
@@ -293,5 +293,6 @@ export default class scrollBar {
     scrollBarInfo.verticalScrollTop = top
     cursor.moveCursor()
     content.renderLine()
+    content.renderSelectedArea()
   }
 }

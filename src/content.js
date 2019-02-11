@@ -1,4 +1,4 @@
-import { css } from './utils'
+import { css, removeDom } from './utils'
 import { fromEvent, of } from 'rxjs'
 import { takeUntil, map, concatAll, take, filter, tap } from 'rxjs/operators'
 import { keyword } from './config/jsConfig'
@@ -36,6 +36,7 @@ export default class JSContent {
         map(e => {
           //判断是否激活Editor
           if (Editor.JSEditor.contains(e.target)) {
+            Editor.down = true
             Editor.cursor.showCursor()
             const editorInfo = Editor.JSEditor.getBoundingClientRect()
             Editor.editorInfo.top = editorInfo.top
@@ -68,7 +69,10 @@ export default class JSContent {
         timer = null
         timerLine = null
       }
-      me.moveToClickPoint(e, 'up')
+      if (Editor.down) {
+        me.moveToClickPoint(e, 'up')
+      }
+      Editor.down = false
     })
 
     const mousewheel = fromEvent(JSContent, 'mousewheel')
@@ -369,20 +373,24 @@ export default class JSContent {
     }
     if (way === 'down') {
       const cursorInfo = Editor.cursorInfo
-      console.log(Object.assign({}, Editor.cursorInfo))
-      if (!e.shiftActive) {
+      if (!e.shiftKey) {
+        this.clearSelectedArea()
         Editor.startPos = {
           cursorLineIndex: cursorInfo.cursorLineIndex,
-          cursorStrIndex: cursorInfo.cursorStrIndex
+          cursorStrIndex: cursorInfo.cursorStrIndex,
+          left: cursorInfo.left,
+          top: cursorInfo.top
         }
       }
     } else if (way === 'up') {
       const cursorInfo = Editor.cursorInfo
       Editor.endPos = {
         cursorLineIndex: cursorInfo.cursorLineIndex,
-        cursorStrIndex: cursorInfo.cursorStrIndex
+        cursorStrIndex: cursorInfo.cursorStrIndex,
+        left: cursorInfo.left,
+        top: cursorInfo.top
       }
-      console.log(Object.assign({}, Editor.cursorInfo))
+      this.renderSelectedArea()
     }
     Editor.textarea.preInputAction()
   }
@@ -555,9 +563,91 @@ export default class JSContent {
 
     Editor.JSLineWrapper.innerHTML = ''
     Editor.JSLineWrapper.appendChild(renderJSLine(Editor, textPerLine, startIndex, endIndex))
+    const JSLineSelectedWrapper = document.createElement('div')
+    JSLineSelectedWrapper.className = 'JSLineSelectedWrapper'
+    Editor.JSLineSelectedWrapper = JSLineSelectedWrapper
+    Editor.JSLineWrapper.appendChild(JSLineSelectedWrapper)
   }
 
-  renderSelectedArea() {}
+  renderSelectedArea() {
+    const Editor = this.Editor
+    const { startPos, endPos, scrollBarInfo, JSLineSelectedWrapper, textPerLine, lineHeight, gutterWidth } = Editor
+    let realityStartPos, realityEndPos
+    console.log(startPos)
+    console.log(endPos)
+    console.log(scrollBarInfo)
+    if (startPos.top < endPos.top) {
+      realityStartPos = startPos
+      realityEndPos = endPos
+    } else if (startPos.top > endPos.top) {
+      realityStartPos = endPos
+      realityEndPos = startPos
+    } else if (startPos.top === endPos.top) {
+      if (startPos.left < endPos.left) {
+        realityStartPos = startPos
+        realityEndPos = endPos
+      } else if (startPos.left > endPos.left) {
+        realityStartPos = endPos
+        realityEndPos = startPos
+      } else {
+        return
+      }
+    }
+    this.clearSelectedArea()
+    const fragment = document.createDocumentFragment()
+
+    console.log(scrollBarInfo.verticalScrollTop * scrollBarInfo.verticalRate)
+    console.log(realityStartPos)
+    let curTop = realityStartPos.top
+    let curLine = realityStartPos.cursorLineIndex
+    let first = true
+    while (curTop <= realityEndPos.top) {
+      const width = Editor.getTargetWidth(textPerLine[curLine])
+      const JSLineSelected = document.createElement('div')
+      JSLineSelected.className = 'JSLineSelected'
+      console.log(width)
+      let finallyWidth, finallyLeft
+      if (first) {
+        finallyLeft = realityStartPos.left - gutterWidth
+        if (curTop + lineHeight > realityEndPos.top) {
+          finallyWidth = Editor.getTargetWidth(
+            textPerLine[curLine].slice(realityStartPos.cursorStrIndex, realityEndPos.cursorStrIndex)
+          )
+        } else {
+          finallyWidth = width - realityStartPos.left + gutterWidth
+        }
+      } else {
+        finallyLeft = 0
+        if (curTop + lineHeight > realityEndPos.top) {
+          finallyWidth = Editor.getTargetWidth(textPerLine[curLine].slice(0, realityEndPos.cursorStrIndex))
+          console.log('finallyWidth = ', finallyWidth)
+        } else {
+          finallyWidth = width
+        }
+      }
+
+      css(JSLineSelected, {
+        height: lineHeight + 'px',
+        width: finallyWidth + 'px',
+        top: curTop + 'px',
+        left: finallyLeft + 'px'
+      })
+      fragment.appendChild(JSLineSelected)
+      curTop += lineHeight
+      curLine += 1
+      first = false
+    }
+
+    JSLineSelectedWrapper.appendChild(fragment)
+  }
+
+  clearSelectedArea() {
+    const Editor = this.Editor
+    Editor.JSLineSelectedWrapper.innerHTML = ''
+    // Editor.JSLineSelectedWrapper && removeDom(Editor.JSLineSelectedWrapper)
+    // Editor.startPos = null
+    // Editor.endPos = null
+  }
 
   setLineWrapperHeight() {
     const height = this.Editor.textPerLine.length * this.Editor.lineHeight
