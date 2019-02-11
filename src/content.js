@@ -573,9 +573,7 @@ export default class JSContent {
     const Editor = this.Editor
     const { startPos, endPos, scrollBarInfo, JSLineSelectedWrapper, textPerLine, lineHeight, gutterWidth } = Editor
     let realityStartPos, realityEndPos
-    console.log(startPos)
-    console.log(endPos)
-    console.log(scrollBarInfo)
+ 
     if (startPos.top < endPos.top) {
       realityStartPos = startPos
       realityEndPos = endPos
@@ -596,8 +594,6 @@ export default class JSContent {
     this.clearSelectedArea()
     const fragment = document.createDocumentFragment()
 
-    console.log(scrollBarInfo.verticalScrollTop * scrollBarInfo.verticalRate)
-    console.log(realityStartPos)
     let curTop = realityStartPos.top
     let curLine = realityStartPos.cursorLineIndex
     let first = true
@@ -605,7 +601,7 @@ export default class JSContent {
       const width = Editor.getTargetWidth(textPerLine[curLine])
       const JSLineSelected = document.createElement('div')
       JSLineSelected.className = 'JSLineSelected'
-      console.log(width)
+
       let finallyWidth, finallyLeft
       if (first) {
         finallyLeft = realityStartPos.left - gutterWidth
@@ -614,15 +610,14 @@ export default class JSContent {
             textPerLine[curLine].slice(realityStartPos.cursorStrIndex, realityEndPos.cursorStrIndex)
           )
         } else {
-          finallyWidth = width - realityStartPos.left + gutterWidth
+          finallyWidth = width - realityStartPos.left + gutterWidth + 10
         }
       } else {
         finallyLeft = 0
         if (curTop + lineHeight > realityEndPos.top) {
           finallyWidth = Editor.getTargetWidth(textPerLine[curLine].slice(0, realityEndPos.cursorStrIndex))
-          console.log('finallyWidth = ', finallyWidth)
         } else {
-          finallyWidth = width
+          finallyWidth = width + 10
         }
       }
 
@@ -644,9 +639,6 @@ export default class JSContent {
   clearSelectedArea() {
     const Editor = this.Editor
     Editor.JSLineSelectedWrapper.innerHTML = ''
-    // Editor.JSLineSelectedWrapper && removeDom(Editor.JSLineSelectedWrapper)
-    // Editor.startPos = null
-    // Editor.endPos = null
   }
 
   setLineWrapperHeight() {

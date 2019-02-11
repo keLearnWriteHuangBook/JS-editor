@@ -214,8 +214,7 @@ export default class Textarea {
   copyText() {
     const Editor = this.Editor
     const { startPos, endPos, textPerLine } = Editor
-    console.log(startPos)
-    console.log(endPos)
+ 
     let realityStartPos, realityEndPos
     if (startPos.top < endPos.top) {
       realityStartPos = startPos
