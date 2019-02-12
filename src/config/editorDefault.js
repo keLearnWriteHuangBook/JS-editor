@@ -64,6 +64,8 @@ export default {
   rollRange: 15,
   tabBlank: 2,
   editorInfo: {},
+  startPos: null,
+  endPos: null,
   contentInfo: {
     height: 0,
     width: 0,

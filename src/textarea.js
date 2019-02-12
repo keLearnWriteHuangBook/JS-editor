@@ -181,14 +181,16 @@ export default class Textarea {
         }
         if (downKeyCode === 67) {
           const userAgent = Editor.userAgent
-          e.preventDefault()
+          
           if (userAgent === 'mac') {
             if (e.metaKey) {
               me.copyText()
+              e.preventDefault()
             }
           } else if (userAgent === 'windows') {
             if (e.ctrlKey) {
               me.copyText()
+              e.preventDefault()
             }
           }
         }
