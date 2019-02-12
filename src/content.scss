@@ -39,6 +39,7 @@
                     position: absolute;
                     .JSLineSpan {
                         position: relative;
+                        z-index: 2;
                         .kTextDeclaration,
                         .kTextThis,
                         .kTextBool,
@@ -85,6 +86,7 @@
                         background: #84afe2;
                         opacity: 0.3;
                         position: absolute;
+                        z-index: 1;
                     }
                 }
             }

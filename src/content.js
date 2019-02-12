@@ -146,6 +146,7 @@ export default class JSContent {
         const endContainer = range.endContainer
         const parentNode = endContainer.parentNode
         let cursorStrIndex = null
+
         if (endContainer.nodeType === endContainer.TEXT_NODE) {
           if (parentNode.className === 'JSGutter') {
             cursorStrIndex = 0
@@ -225,6 +226,7 @@ export default class JSContent {
 
     if (way === 'down') {
       const cursorInfo = Editor.cursorInfo
+      console.log(cursorInfo)
       if (!e.shiftKey) {
         this.clearSelectedArea()
         Editor.startPos = {
@@ -233,8 +235,9 @@ export default class JSContent {
           left: cursorInfo.left,
           top: cursorInfo.top
         }
+        console.log(Editor.startPos);
       }
-    } else if (way === 'up') {
+    } else if (way === 'up' || way === 'move') {
       const cursorInfo = Editor.cursorInfo
       Editor.endPos = {
         cursorLineIndex: cursorInfo.cursorLineIndex,
@@ -242,6 +245,8 @@ export default class JSContent {
         left: cursorInfo.left,
         top: cursorInfo.top
       }
+      console.log(Editor.startPos);
+      console.log(Editor.endPos);
       this.renderSelectedArea()
     }
     Editor.textarea.preInputAction()
