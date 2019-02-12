@@ -153,7 +153,7 @@ export default class JSContent {
             cursor.moveToLineStart(curLine)
             cursor.setCursorStrIndex(cursorStrIndex)
             scrollBar.moveHorizon(0)
-            return
+            // return
           } else {
             const previousTextLength = this.Editor.getPreviousTextLength(parentNode)
 
@@ -187,7 +187,7 @@ export default class JSContent {
         ) {
           scrollBar.moveHorizon(
             Math.max(
-              (this.Editor.getTargetWidth(textPerLine[Math.min(curLine, textPerLine.length - 1)]) - 20) / horizonRate,
+              (this.Editor.getTargetWidth(textPerLine[Math.min(curLine, textPerLine.length - 1)].slice(0, cursorStrIndex)) - 20) / horizonRate,
               0
             )
           )
