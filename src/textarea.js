@@ -82,6 +82,7 @@ export default class Textarea {
       this.Editor.content.renderLine()
       this.Editor.content.setLineWrapperWidth()
       this.Editor.scrollBar.setHorizonWidth()
+      this.Editor.scrollBar.setVerticalWidth()
       isPaste = false
     })
 
@@ -112,7 +113,6 @@ export default class Textarea {
           me.preInputAction()
         }
         if (downKeyCode === 8) {
-          console.log(Editor.selectStatus)
           const {
             gutterWidth,
             tabBlank,
@@ -193,10 +193,6 @@ export default class Textarea {
             }
 
             if (horizonScrollLeft * horizonRate + editorInfo.width < nextCursorLeft - gutterWidth) {
-              console.log(editorInfo.width);
-              console.log(nextCursorLeft);
-              console.log((nextCursorLeft - gutterWidth + (editorInfo.width - gutterWidth) + 20));
-              console.log((nextCursorLeft - gutterWidth + (editorInfo.width - gutterWidth) + 20) / horizonRate);
               scrollBar.moveHorizon((nextCursorLeft - gutterWidth - (editorInfo.width - gutterWidth) + 40) / horizonRate)
             }
           } else {
