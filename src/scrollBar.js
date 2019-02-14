@@ -273,6 +273,9 @@ export default class scrollBar {
     css(JSHorizonScrollSlider, {
       left: left + 'px'
     })
+    console.log(left);
+    console.log(scrollBarInfo.horizonRate);
+    console.log(-left * scrollBarInfo.horizonRate);
     css(JSLineWrapper, {
       left: -left * scrollBarInfo.horizonRate + 'px'
     })

@@ -7,7 +7,7 @@ export default {
     color: '#fff'
   },
   textPerLine: [
-    "4",
+    "",
     // '',
     // '大叔大婶<span>89`53453453453an>----呵呵结束',
     // '可d可d/*可d可d`fs*/fsd',

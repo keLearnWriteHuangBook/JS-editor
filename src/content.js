@@ -518,7 +518,7 @@ export default class JSContent {
         tap(e => {
           const txt = textPerLine[cursorLineIndex].slice(0, cursorStrIndex)
           const width = Editor.getTargetWidth(txt)
-
+       
           cursor.moveCursor(width + gutterWidth, cursorLineIndex * lineHeight)
           cursor.setCursorStrIndex(txt.length)
           cursor.setCursorLineIndex(cursorLineIndex)
@@ -529,18 +529,19 @@ export default class JSContent {
           if (cursorInfo.top < verticalScrollTop * verticalRate) {
             scrollBar.moveVertical(cursorInfo.top / verticalRate)
           }
-          if (cursorInfo.left - gutterWidth - 20 < horizonScrollLeft * horizonRate) {
+         
+          if (Math.max(cursorInfo.left - gutterWidth - 20, 0) < horizonScrollLeft * horizonRate) {
             scrollBar.moveHorizon(Math.max((cursorInfo.left - gutterWidth - 20) / horizonRate, 0))
           }
         } else if (e.keyCode === 40) {
           if (cursorInfo.top >= verticalScrollTop * verticalRate + editorInfo.height) {
             scrollBar.moveVertical(((cursorLineIndex + 1) * lineHeight - editorInfo.height) / verticalRate)
           }
-          if (cursorInfo.left - gutterWidth - 20 < horizonScrollLeft * horizonRate) {
+          if (Math.max(cursorInfo.left - gutterWidth - 20, 0) < horizonScrollLeft * horizonRate) {
             scrollBar.moveHorizon(Math.max((cursorInfo.left - gutterWidth - 20) / horizonRate, 0))
           }
         } else if (e.keyCode === 37) {
-          if (cursorInfo.left - gutterWidth - 20 < horizonScrollLeft * horizonRate) {
+          if (Math.max(cursorInfo.left - gutterWidth - 20, 0) < horizonScrollLeft * horizonRate) {
             scrollBar.moveHorizon(Math.max((cursorInfo.left - gutterWidth - 20) / horizonRate, 0))
           } else if (cursorInfo.left > horizonScrollLeft * horizonRate + editorInfo.width) {
             scrollBar.moveHorizon((cursorInfo.left - editorInfo.width + 20) / horizonRate)
