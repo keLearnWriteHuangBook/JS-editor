@@ -131,7 +131,7 @@ export default class JSContent {
     const relativeX = e.clientX - editorInfo.left
     const viewStart = horizonScrollLeft * horizonRate
 
-    if (!this.autoScroll(e, way, curLine, clientY)) {
+    if (!this.autoScroll(e, way, curLine, clientY, range)) {
       if (JSEditor.contains(e.target)) {
         if (timer) {
           clearInterval(timer)
@@ -148,7 +148,6 @@ export default class JSContent {
             cursor.moveToLineStart(curLine)
             cursor.setCursorStrIndex(cursorStrIndex)
             scrollBar.moveHorizon(0)
-            // return
           } else {
             const previousTextLength = this.Editor.getPreviousTextLength(parentNode)
 
@@ -182,7 +181,11 @@ export default class JSContent {
         ) {
           scrollBar.moveHorizon(
             Math.max(
-              (this.Editor.getTargetWidth(textPerLine[Math.min(curLine, textPerLine.length - 1)].slice(0, cursorStrIndex)) - 20) / horizonRate,
+              (this.Editor.getTargetWidth(
+                textPerLine[Math.min(curLine, textPerLine.length - 1)].slice(0, cursorStrIndex)
+              ) -
+                20) /
+                horizonRate,
               0
             )
           )
@@ -195,7 +198,7 @@ export default class JSContent {
         }
       } else {
         const relativeY = e.clientY - editorInfo.top
-        
+
         //编辑器外面时光标和滚动条位置
         if (relativeY > 0 && relativeY < editorInfo.height) {
           if (curLine <= textPerLine.length - 1) {
@@ -207,7 +210,8 @@ export default class JSContent {
               Editor.cursor.moveToLineEnd(curLine)
               if (this.Editor.getTargetWidth(textPerLine[curLine]) > editorInfo.width - gutterWidth) {
                 scrollBar.moveHorizon(
-                  (this.Editor.getTargetWidth(textPerLine[curLine]) - (editorInfo.width - gutterWidth) + 20) / horizonRate
+                  (this.Editor.getTargetWidth(textPerLine[curLine]) - (editorInfo.width - gutterWidth) + 20) /
+                    horizonRate
                 )
               } else {
                 scrollBar.moveHorizon(0)
@@ -221,7 +225,7 @@ export default class JSContent {
 
     if (way === 'down') {
       const cursorInfo = Editor.cursorInfo
-      console.log(cursorInfo)
+
       if (!e.shiftKey) {
         this.clearSelectedArea()
         Editor.startPos = {
@@ -230,7 +234,6 @@ export default class JSContent {
           left: cursorInfo.left,
           top: cursorInfo.top
         }
-        console.log(Editor.startPos);
       }
     } else if (way === 'up' || way === 'move') {
       const cursorInfo = Editor.cursorInfo
@@ -240,15 +243,13 @@ export default class JSContent {
         left: cursorInfo.left,
         top: cursorInfo.top
       }
-      console.log(Editor.startPos);
-      console.log(Editor.endPos);
       this.renderSelectedArea()
     }
     Editor.textarea.preInputAction()
   }
 
   //当鼠标出去按下并在自动固定区域时,最后会返回一个bool,用以判断是否处于滚动区域
-  autoScroll(e, way, curLine, clientY) {
+  autoScroll(e, way, curLine, clientY, range) {
     const Editor = this.Editor
     let isAutoScroll = false
 
@@ -433,6 +434,19 @@ export default class JSContent {
           }
         }, 15)
       }
+    }
+
+    if (isAutoScroll && way === 'down') {
+      const endContainer = range.endContainer
+      const parentNode = endContainer.parentNode
+      const previousTextLength = Editor.getPreviousTextLength(parentNode)
+      const cursorStrIndex = previousTextLength + range.endOffset
+
+      Editor.cursor.moveCursor(
+        Editor.getTargetWidth(textPerLine[curLine].slice(0, cursorStrIndex)) + gutterWidth,
+        curLine * lineHeight
+      )
+      Editor.cursor.setCursorStrIndex(cursorStrIndex)
     }
 
     return isAutoScroll
