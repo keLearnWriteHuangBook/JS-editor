@@ -116,14 +116,20 @@ export function renderJSLine(Editor, textPerLine, startIndex, endIndex) {
         } else {
           createSpan(JSLineSpan, 'kTextOther', it[i])
           currentStr = ''
+          jugdeLastCharacter(i, it.length, JSLineSpan, currentStr, index, quotesType, annotationType)
         }
         continue
       }
-      
+
       currentStr += it[i]
       jugdeLastCharacter(i, it.length, JSLineSpan, currentStr, index, quotesType, annotationType)
     }
 
+    if (it.length === 0) {
+      TQLastStatusPerLine[index] = TQLastStatusPerLine[index - 1]
+      MNLastStatusPerLine[index] = MNLastStatusPerLine[index - 1]
+    }
+  
     JSLine.appendChild(JSLineSpan)
     fragment.appendChild(JSLine)
   })

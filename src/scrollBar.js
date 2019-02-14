@@ -115,10 +115,12 @@ export default class scrollBar {
   }
 
   setHorizonWidth() {
-    const { editorInfo, gutterWidth, JSHorizonScrollSlider, scrollBarInfo } = this.Editor
-    const JSLine = document.querySelector('.JSLineWrapper .JSLine')
+    const { editorInfo, gutterWidth, JSHorizonScrollSlider, scrollBarInfo, contentInfo } = this.Editor
+    // const JSLine = document.querySelector('.JSLineWrapper .JSLine')
    
-    const contentAllWidth = JSLine.getBoundingClientRect().width
+    const contentAllWidth = contentInfo.width
+    // console.log(contentAllWidth)
+    console.log(contentInfo);
     const contentViewWidth = editorInfo.width - gutterWidth
     let length
  
@@ -154,9 +156,9 @@ export default class scrollBar {
   }
 
   setHorizonRate() {
-    const { scrollBarInfo, editorInfo, gutterWidth } = this.Editor
-    const JSLine = document.querySelector('.JSLineWrapper .JSLine')
-    const contentAllWidth = JSLine.getBoundingClientRect().width
+    const { scrollBarInfo, editorInfo, gutterWidth, contentInfo } = this.Editor
+    // const JSLine = document.querySelector('.JSLineWrapper .JSLine')
+    const contentAllWidth = contentInfo.width
     scrollBarInfo.horizonRate =
       (contentAllWidth - editorInfo.width + gutterWidth) / (editorInfo.width - gutterWidth - scrollBarInfo.horizonScrollLength)
   }

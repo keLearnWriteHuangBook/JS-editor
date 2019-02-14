@@ -126,7 +126,8 @@ export default class Textarea {
             selectStatus,
             startPos,
             endPos,
-            content
+            content,
+            contentInfo
           } = Editor
           const { cursorStrIndex, cursorLineIndex, top } = Editor.cursorInfo
           const {
@@ -164,7 +165,7 @@ export default class Textarea {
                 endLineStrIndex = endPos.cursorStrIndex
               }
             }
-         
+
             let startLineText = copyText[realStartLine].slice(0, startLineStrIndex)
             let endLineText = copyText[realEndLine].slice(endLineStrIndex)
             let text = startLineText + endLineText
@@ -181,19 +182,22 @@ export default class Textarea {
             scrollBar.setVerticalWidth()
             Editor.content.clearSelectedArea()
             if (verticalScrollTop * verticalRate > nextCursorTop) {
-              scrollBar.moveVertical(nextCursorTop / verticalRate)
+              scrollBar.moveVertical(nextCursorTop / scrollBarInfo.verticalRate)
             }
 
             if (verticalScrollTop * verticalRate + editorInfo.height < nextCursorTop) {
-              scrollBar.moveVertical((nextCursorTop - editorInfo.height + lineHeight * 2) / verticalRate)
+              scrollBar.moveVertical((nextCursorTop - editorInfo.height + lineHeight * 2) / scrollBarInfo.verticalRate)
             }
 
             if (horizonScrollLeft * horizonRate > nextCursorLeft - gutterWidth) {
-              scrollBar.moveHorizon((nextCursorLeft - gutterWidth - 20) / horizonRate)
+              //当横向滚动条长度为0时，需要做特殊处理
+              scrollBar.moveHorizon((contentInfo.width <= editorInfo.width - gutterWidth) ? 0 : (nextCursorLeft - gutterWidth - 20) / scrollBarInfo.horizonRate)
             }
 
             if (horizonScrollLeft * horizonRate + editorInfo.width < nextCursorLeft - gutterWidth) {
-              scrollBar.moveHorizon((nextCursorLeft - gutterWidth - (editorInfo.width - gutterWidth) + 40) / horizonRate)
+              scrollBar.moveHorizon(
+                (nextCursorLeft - gutterWidth - (editorInfo.width - gutterWidth) + 40) / scrollBarInfo.horizonRate
+              )
             }
           } else {
             if (currentCursorStrIndex === 0) {
