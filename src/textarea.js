@@ -44,7 +44,7 @@ export default class Textarea {
       const valueArr = e.target.value.split(/\r\n|\r|\n/)
       const cursorPreText = copyTextPerLine[cursorLineIndex].slice(0, cursorStrIndex)
       const cursorAfterText = copyTextPerLine[cursorLineIndex].slice(cursorStrIndex)
-  
+
       if (valueArr.length === 1) {
         let text = cursorPreText + valueArr[0] + cursorAfterText
         textPerLine[cursorLineIndex] = text
@@ -88,7 +88,7 @@ export default class Textarea {
     focusEvent.subscribe(e => {
       keydownEvent.pipe(takeUntil(blurEvent)).subscribe(e => {
         downKeyCode = e.keyCode
-       
+
         if (downKeyCode === 9) {
           const { gutterWidth, tabBlank, cursor, textPerLine, scrollBar } = Editor
           const { cursorStrIndex, cursorLineIndex, top } = Editor.cursorInfo
@@ -112,6 +112,7 @@ export default class Textarea {
           me.preInputAction()
         }
         if (downKeyCode === 8) {
+          console.log(Editor.selectStatus)
           const {
             gutterWidth,
             tabBlank,
@@ -121,59 +122,132 @@ export default class Textarea {
             scrollBarInfo,
             editorInfo,
             lineHeight,
-            rollRange
+            rollRange,
+            selectStatus,
+            startPos,
+            endPos,
+            content
           } = Editor
           const { cursorStrIndex, cursorLineIndex, top } = Editor.cursorInfo
-          const { horizonScrollLeft, horizonRate, horizonScrollLength, verticalRate, verticalScrollTop, verticalScrollLength } = scrollBarInfo
+          const {
+            horizonScrollLeft,
+            horizonRate,
+            horizonScrollLength,
+            verticalRate,
+            verticalScrollTop,
+            verticalScrollLength
+          } = scrollBarInfo
 
           let currentCursorStrIndex = cursorStrIndex
-          if (currentCursorStrIndex === 0) {
-            if (cursorLineIndex > 0) {
-              let preUpLine = textPerLine[cursorLineIndex - 1]
-              let preUpLineWidth = Editor.getTargetWidth(preUpLine)
-              currentCursorStrIndex = preUpLine.length
-          
-              textPerLine[cursorLineIndex - 1] += textPerLine[cursorLineIndex]
-              textPerLine.splice(cursorLineIndex, 1)
-              Editor.cursor.setCursorStrIndex(preUpLine.length)
-              Editor.cursor.setCursorLineIndex(cursorLineIndex - 1)
-              Editor.content.renderLine()
-              Editor.content.renderGutter()
-              Editor.content.setLineWrapperWidth()
-              //当滚动条处于最下方时
-              if (verticalScrollTop * verticalRate >= (cursorLineIndex - 1) * lineHeight) {
-                scrollBar.moveVertical(verticalScrollTop - (lineHeight / verticalRate))
-              }
-              scrollBar.setHorizonWidth()
-              scrollBar.setVerticalWidth()
-              //因为verticalRate的变化所以实际verticalScrollTop也发生变化
-              scrollBar.moveVertical(scrollBarInfo.verticalScrollTop * verticalRate / scrollBarInfo.verticalRate)
-              Editor.cursor.moveCursor(preUpLineWidth + gutterWidth, (cursorLineIndex - 1) * lineHeight)
-              if (preUpLineWidth > editorInfo.width - gutterWidth) {
-                scrollBar.moveHorizon((preUpLineWidth - (editorInfo.width - gutterWidth) + 20) / horizonRate)
+          if (selectStatus) {
+            let realStartLine, realEndLine, startLineStrIndex, endLineStrIndex
+            let copyText = textPerLine.concat([])
+
+            if (startPos.cursorLineIndex > endPos.cursorLineIndex) {
+              realStartLine = endPos.cursorLineIndex
+              realEndLine = startPos.cursorLineIndex
+              startLineStrIndex = endPos.cursorStrIndex
+              endLineStrIndex = startPos.cursorStrIndex
+            } else if (startPos.cursorLineIndex < endPos.cursorLineIndex) {
+              realStartLine = startPos.cursorLineIndex
+              realEndLine = endPos.cursorLineIndex
+              startLineStrIndex = startPos.cursorStrIndex
+              endLineStrIndex = endPos.cursorStrIndex
+            } else {
+              realStartLine = startPos.cursorLineIndex
+              realEndLine = endPos.cursorLineIndex
+              if (startPos.cursorStrIndex >= endPos.cursorStrIndex) {
+                startLineStrIndex = endPos.cursorStrIndex
+                endLineStrIndex = startPos.cursorStrIndex
+              } else {
+                startLineStrIndex = startPos.cursorStrIndex
+                endLineStrIndex = endPos.cursorStrIndex
               }
             }
-          } else {
-            const leftText = textPerLine[cursorLineIndex].slice(0, currentCursorStrIndex - 1)
-            const rightText = textPerLine[cursorLineIndex].slice(currentCursorStrIndex)
-           
-            textPerLine[cursorLineIndex] = leftText + rightText
-            Editor.cursor.moveCursor(Editor.getTargetWidth(leftText) + gutterWidth, cursorLineIndex * lineHeight)
-            Editor.cursor.setCursorStrIndex(currentCursorStrIndex - 1)
+         
+            let startLineText = copyText[realStartLine].slice(0, startLineStrIndex)
+            let endLineText = copyText[realEndLine].slice(endLineStrIndex)
+            let text = startLineText + endLineText
+            copyText.splice(realStartLine, realEndLine - realStartLine + 1, text)
+            Editor.textPerLine = copyText
+            Editor.cursor.setCursorStrIndex(startLineStrIndex)
+            let nextCursorTop = realStartLine * lineHeight
+            let nextCursorLeft = Editor.getTargetWidth(startLineText) + gutterWidth
+            Editor.cursor.moveCursor(nextCursorLeft, nextCursorTop)
             Editor.content.renderLine()
+            Editor.content.renderGutter()
             Editor.content.setLineWrapperWidth()
             scrollBar.setHorizonWidth()
             scrollBar.setVerticalWidth()
-
-            //当光标要移除可视区域时，移动滚动条
-            if (horizonScrollLeft * horizonRate + gutterWidth > 60) {
-              if (Editor.cursorInfo.left - rollRange < (horizonScrollLeft * horizonRate + gutterWidth)) {
-                Editor.scrollBar.moveHorizon((Editor.cursorInfo.left - rollRange - gutterWidth) / horizonRate)
-              }
+            Editor.content.clearSelectedArea()
+            if (verticalScrollTop * verticalRate > nextCursorTop) {
+              scrollBar.moveVertical(nextCursorTop / verticalRate)
             }
-            //当变化后的滚动条，其右边距离超出可视区域时，移动滚动条
-            if (horizonScrollLeft + horizonScrollLength > editorInfo.width - gutterWidth) {
-              Editor.scrollBar.moveHorizon(editorInfo.width - gutterWidth - horizonScrollLength)
+
+            if (verticalScrollTop * verticalRate + editorInfo.height < nextCursorTop) {
+              scrollBar.moveVertical((nextCursorTop - editorInfo.height + lineHeight * 2) / verticalRate)
+            }
+
+            if (horizonScrollLeft * horizonRate > nextCursorLeft - gutterWidth) {
+              scrollBar.moveHorizon((nextCursorLeft - gutterWidth - 20) / horizonRate)
+            }
+
+            if (horizonScrollLeft * horizonRate + editorInfo.width < nextCursorLeft - gutterWidth) {
+              console.log(editorInfo.width);
+              console.log(nextCursorLeft);
+              console.log((nextCursorLeft - gutterWidth + (editorInfo.width - gutterWidth) + 20));
+              console.log((nextCursorLeft - gutterWidth + (editorInfo.width - gutterWidth) + 20) / horizonRate);
+              scrollBar.moveHorizon((nextCursorLeft - gutterWidth - (editorInfo.width - gutterWidth) + 40) / horizonRate)
+            }
+          } else {
+            if (currentCursorStrIndex === 0) {
+              if (cursorLineIndex > 0) {
+                let preUpLine = textPerLine[cursorLineIndex - 1]
+                let preUpLineWidth = Editor.getTargetWidth(preUpLine)
+                currentCursorStrIndex = preUpLine.length
+
+                textPerLine[cursorLineIndex - 1] += textPerLine[cursorLineIndex]
+                textPerLine.splice(cursorLineIndex, 1)
+                Editor.cursor.setCursorStrIndex(preUpLine.length)
+                Editor.cursor.setCursorLineIndex(cursorLineIndex - 1)
+                Editor.content.renderLine()
+                Editor.content.renderGutter()
+                Editor.content.setLineWrapperWidth()
+                //当滚动条处于最下方时
+                if (verticalScrollTop * verticalRate >= (cursorLineIndex - 1) * lineHeight) {
+                  scrollBar.moveVertical(verticalScrollTop - lineHeight / verticalRate)
+                }
+                scrollBar.setHorizonWidth()
+                scrollBar.setVerticalWidth()
+                //因为verticalRate的变化所以实际verticalScrollTop也发生变化
+                scrollBar.moveVertical((scrollBarInfo.verticalScrollTop * verticalRate) / scrollBarInfo.verticalRate)
+                Editor.cursor.moveCursor(preUpLineWidth + gutterWidth, (cursorLineIndex - 1) * lineHeight)
+                if (preUpLineWidth > editorInfo.width - gutterWidth) {
+                  scrollBar.moveHorizon((preUpLineWidth - (editorInfo.width - gutterWidth) + 20) / horizonRate)
+                }
+              }
+            } else {
+              const leftText = textPerLine[cursorLineIndex].slice(0, currentCursorStrIndex - 1)
+              const rightText = textPerLine[cursorLineIndex].slice(currentCursorStrIndex)
+
+              textPerLine[cursorLineIndex] = leftText + rightText
+              Editor.cursor.moveCursor(Editor.getTargetWidth(leftText) + gutterWidth, cursorLineIndex * lineHeight)
+              Editor.cursor.setCursorStrIndex(currentCursorStrIndex - 1)
+              Editor.content.renderLine()
+              Editor.content.setLineWrapperWidth()
+              scrollBar.setHorizonWidth()
+              scrollBar.setVerticalWidth()
+
+              //当光标要移除可视区域时，移动滚动条
+              if (horizonScrollLeft * horizonRate + gutterWidth > 60) {
+                if (Editor.cursorInfo.left - rollRange < horizonScrollLeft * horizonRate + gutterWidth) {
+                  Editor.scrollBar.moveHorizon((Editor.cursorInfo.left - rollRange - gutterWidth) / horizonRate)
+                }
+              }
+              //当变化后的滚动条，其右边距离超出可视区域时，移动滚动条
+              if (horizonScrollLeft + horizonScrollLength > editorInfo.width - gutterWidth) {
+                Editor.scrollBar.moveHorizon(editorInfo.width - gutterWidth - horizonScrollLength)
+              }
             }
           }
 
@@ -181,7 +255,7 @@ export default class Textarea {
         }
         if (downKeyCode === 67) {
           const userAgent = Editor.userAgent
-          
+
           if (userAgent === 'mac') {
             if (e.metaKey) {
               me.copyText()
@@ -216,7 +290,7 @@ export default class Textarea {
   copyText() {
     const Editor = this.Editor
     const { startPos, endPos, textPerLine } = Editor
- 
+
     let realityStartPos, realityEndPos
     if (startPos.top < endPos.top) {
       realityStartPos = startPos

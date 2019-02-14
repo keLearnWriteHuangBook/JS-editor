@@ -279,7 +279,7 @@ export default class scrollBar {
   }
 
   moveVertical(top) {
-    const { JSVerticalScrollSlider, JSGutterWrapper, scrollBarInfo, JSLineWrapper, cursor, content } = this.Editor
+    const { JSVerticalScrollSlider, JSGutterWrapper, scrollBarInfo, JSLineWrapper, cursor, content, selectStatus } = this.Editor
 
     css(JSVerticalScrollSlider, {
       top: top + 'px'
@@ -293,6 +293,6 @@ export default class scrollBar {
     scrollBarInfo.verticalScrollTop = top
     cursor.moveCursor()
     content.renderLine()
-    content.renderSelectedArea()
+    selectStatus && content.renderSelectedArea()
   }
 }

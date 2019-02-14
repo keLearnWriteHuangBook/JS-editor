@@ -129,12 +129,7 @@ export default class JSContent {
       range = document.caretRangeFromPoint(e.clientX, clientY + editorInfo.top)
 
     const relativeX = e.clientX - editorInfo.left
-    const rollRightStart = editorInfo.width - rollRange - scrollThickness
-    const rollRightEnd = editorInfo.width - scrollThickness
-    const rollLeftStart = gutterWidth
-    const rollLeftEnd = gutterWidth + rollRange * 2
     const viewStart = horizonScrollLeft * horizonRate
-    const viewEnd = horizonScrollLeft * horizonRate + editorInfo.width - gutterWidth
 
     if (!this.autoScroll(e, way, curLine, clientY)) {
       if (JSEditor.contains(e.target)) {
@@ -684,13 +679,14 @@ export default class JSContent {
       curLine += 1
       first = false
     }
-
+    Editor.selectStatus = true
     JSLineSelectedWrapper.appendChild(fragment)
   }
 
   clearSelectedArea() {
     const Editor = this.Editor
     Editor.JSLineSelectedWrapper.innerHTML = ''
+    Editor.selectStatus = false
   }
 
   setLineWrapperHeight() {

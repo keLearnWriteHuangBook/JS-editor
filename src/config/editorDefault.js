@@ -66,6 +66,7 @@ export default {
   editorInfo: {},
   startPos: null,
   endPos: null,
+  selectStatus: false,
   contentInfo: {
     height: 0,
     width: 0,
