@@ -159,12 +159,17 @@ export default class JSContent {
             cursor.moveCursor(width + gutterWidth, curLine * lineHeight)
           }
         } else {
+          console.log(endContainer)
           if (curLine > textPerLine.length - 1) {
             cursorStrIndex = textPerLine[textPerLine.length - 1].length
             cursor.moveToLineEnd(textPerLine.length - 1)
           }
 
-          if (endContainer.className.indexOf('KEditorVerticalScroll') > -1 && curLine <= textPerLine.length - 1) {
+          if (
+            (endContainer.className.indexOf('KEditorVerticalScroll') > -1 ||
+              endContainer.className.indexOf('JSLineWrapperBackground') > -1) &&
+            curLine <= textPerLine.length - 1
+          ) {
             cursorStrIndex = textPerLine[curLine].length
             cursor.moveToLineEnd(curLine)
           }
