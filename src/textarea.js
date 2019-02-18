@@ -36,15 +36,26 @@ export default class Textarea {
     })
 
     inputEvent.subscribe(e => {
-      const { textPerLine, copyTextPerLine, lineHeight, gutterWidth, cursor } = this.Editor
+      const { textPerLine, copyTextPerLine, lineHeight, gutterWidth, cursor, cursorSnapShot, cursorInfo, JSTextarea } = this.Editor
       const { cursorStrIndex, cursorLineIndex } = this.Editor.copyCursorInfo
 
+      console.log(cursorInfo.cursorLineIndex)
+      console.log(cursorInfo.cursorStrIndex)
+      console.log(cursorSnapShot)
+      if (
+        cursorInfo.cursorLineIndex !== cursorSnapShot[cursorSnapShot.length - 1].cursorLineIndex ||
+        cursorInfo.cursorStrIndex !== cursorSnapShot[cursorSnapShot.length - 1].cursorStrIndex &&
+        JSTextarea.value === ''
+      ) {
+        Editor.snapShot()
+      }
       let cursorTop, cursorLeft
 
       const valueArr = e.target.value.split(/\r\n|\r|\n/)
       const cursorPreText = copyTextPerLine[cursorLineIndex].slice(0, cursorStrIndex)
       const cursorAfterText = copyTextPerLine[cursorLineIndex].slice(cursorStrIndex)
-
+      let needAction = false
+      console.log(valueArr)
       if (valueArr.length === 1) {
         let text = cursorPreText + valueArr[0] + cursorAfterText
         textPerLine[cursorLineIndex] = text
@@ -72,12 +83,14 @@ export default class Textarea {
           cursorLeft = gutterWidth
           cursor.setCursorStrIndex(0)
         }
-
-        this.preInputAction()
+        needAction = true
       }
 
       this.Editor.cursor.moveCursor(cursorLeft, cursorTop)
-
+      if (needAction) {
+        Editor.snapShot()
+        this.preInputAction()
+      }
       this.Editor.content.renderGutter()
       this.Editor.content.renderLine()
       this.Editor.content.setLineWrapperWidth()
@@ -89,7 +102,7 @@ export default class Textarea {
     focusEvent.subscribe(e => {
       keydownEvent.pipe(takeUntil(blurEvent)).subscribe(e => {
         downKeyCode = e.keyCode
-
+        console.log(downKeyCode)
         if (downKeyCode === 9) {
           const { gutterWidth, tabBlank, cursor, textPerLine, scrollBar } = Editor
           const { cursorStrIndex, cursorLineIndex, top } = Editor.cursorInfo
@@ -110,6 +123,7 @@ export default class Textarea {
           Editor.content.renderLine()
           Editor.content.setLineWrapperWidth()
           scrollBar.setHorizonWidth()
+          Editor.snapShot()
           me.preInputAction()
         }
         if (downKeyCode === 8) {
@@ -191,7 +205,11 @@ export default class Textarea {
 
             if (horizonScrollLeft * horizonRate > nextCursorLeft - gutterWidth) {
               //当横向滚动条长度为0时，需要做特殊处理
-              scrollBar.moveHorizon((contentInfo.width <= editorInfo.width - gutterWidth) ? 0 : (nextCursorLeft - gutterWidth - 20) / scrollBarInfo.horizonRate)
+              scrollBar.moveHorizon(
+                contentInfo.width <= editorInfo.width - gutterWidth
+                  ? 0
+                  : (nextCursorLeft - gutterWidth - 20) / scrollBarInfo.horizonRate
+              )
             }
 
             if (horizonScrollLeft * horizonRate + editorInfo.width < nextCursorLeft - gutterWidth) {
@@ -251,6 +269,27 @@ export default class Textarea {
             }
           }
 
+          e.preventDefault()
+        }
+        if (downKeyCode === 13) {
+          Editor.textarea.preInputAction()
+          let prevText = Editor.textPerLine[Editor.cursorInfo.cursorLineIndex].slice(
+            0,
+            Editor.cursorInfo.cursorStrIndex
+          )
+          let lastText = Editor.textPerLine[Editor.cursorInfo.cursorLineIndex].slice(Editor.cursorInfo.cursorStrIndex)
+          Editor.textPerLine.splice(Editor.cursorInfo.cursorLineIndex, 1, prevText, lastText)
+          console.log(Editor.cursorInfo)
+          console.log(Editor.textPerLine)
+          Editor.cursor.moveCursor(Editor.gutterWidth, (Editor.cursorInfo.cursorLineIndex + 1) * Editor.lineHeight)
+          Editor.cursor.setCursorStrIndex(0)
+          Editor.content.renderGutter()
+          Editor.content.renderLine()
+          Editor.content.setLineWrapperWidth()
+          Editor.scrollBar.setHorizonWidth()
+          Editor.scrollBar.setVerticalWidth()
+          Editor.snapShot()
+          Editor.textarea.preInputAction()
           e.preventDefault()
         }
         if (downKeyCode === 67) {
@@ -339,8 +378,11 @@ export default class Textarea {
   }
 
   preInputAction() {
-    this.Editor.copyTextPerLine = this.Editor.textPerLine.concat([])
-    this.Editor.copyCursorInfo = Object.assign({}, this.Editor.cursorInfo)
+    const Editor = this.Editor
+    const { textPerLine, cursorInfo } = Editor
+
+    this.Editor.copyTextPerLine = textPerLine.concat([])
+    this.Editor.copyCursorInfo = Object.assign({}, cursorInfo)
     this.Editor.JSTextarea.value = ''
   }
 }

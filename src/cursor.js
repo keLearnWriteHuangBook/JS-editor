@@ -28,7 +28,7 @@ export default class Cursor {
     // console.log(nextLeft)
     // console.log(nextTop)
     nextLeft < gutterWidth || nextTop + lineHeight < 0 ? this.hideCursor() : this.showCursor()
- 
+  
     css(JSCursor, {
       left: nextLeft + 'px',
       top: nextTop + 'px'

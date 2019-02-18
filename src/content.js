@@ -86,6 +86,34 @@ export default class JSContent {
 
     keydown
       .pipe(
+        tap(e => {
+          if (e.keyCode === 90) {
+            const userAgent = Editor.userAgent
+
+            if (userAgent === 'mac') {
+              if (e.metaKey) {
+                reback()
+              }
+            } else if (userAgent === 'windows') {
+              if (e.ctrlKey) {
+                reback()
+              }
+            }
+            function reback() {
+              e.preventDefault()
+              if (Editor.textSnapShot.length === 1) {
+                return
+              }
+              Editor.textPerLine = Editor.textSnapShot.pop()
+              me.renderLine()
+              me.renderGutter()
+              Editor.cursorInfo = Editor.cursorSnapShot.pop()
+              Editor.cursor.moveCursor(Editor.cursorInfo.left, Editor.cursorInfo.top)
+              Editor.textarea.preInputAction()
+              console.log(Editor.cursorInfo);
+            }
+          }
+        }),
         filter(e => (e.keyCode === 38 || e.keyCode === 40 || e.keyCode === 37 || e.keyCode === 39) && Editor.isActive)
       )
       .subscribe(e => me.directionKey(e))
@@ -159,7 +187,6 @@ export default class JSContent {
             cursor.moveCursor(width + gutterWidth, curLine * lineHeight)
           }
         } else {
-          console.log(endContainer)
           if (curLine > textPerLine.length - 1) {
             cursorStrIndex = textPerLine[textPerLine.length - 1].length
             cursor.moveToLineEnd(textPerLine.length - 1)
@@ -518,7 +545,7 @@ export default class JSContent {
         tap(e => {
           const txt = textPerLine[cursorLineIndex].slice(0, cursorStrIndex)
           const width = Editor.getTargetWidth(txt)
-       
+
           cursor.moveCursor(width + gutterWidth, cursorLineIndex * lineHeight)
           cursor.setCursorStrIndex(txt.length)
           cursor.setCursorLineIndex(cursorLineIndex)
@@ -529,7 +556,7 @@ export default class JSContent {
           if (cursorInfo.top < verticalScrollTop * verticalRate) {
             scrollBar.moveVertical(cursorInfo.top / verticalRate)
           }
-         
+
           if (Math.max(cursorInfo.left - gutterWidth - 20, 0) < horizonScrollLeft * horizonRate) {
             scrollBar.moveHorizon(Math.max((cursorInfo.left - gutterWidth - 20) / horizonRate, 0))
           }
@@ -562,6 +589,7 @@ export default class JSContent {
           }
         }
       })
+
     Editor.textarea.preInputAction()
   }
 

@@ -1,3 +1,5 @@
+const gutterWidth = 60
+
 export default {
   isActive: false,
   fontSize: 14,
@@ -6,60 +8,7 @@ export default {
     background: 'rgba(0, 0, 0, 0.9)',
     color: '#fff'
   },
-  textPerLine: [
-    "",
-    // '',
-    // '大叔大婶<span>89`53453453453an>----呵呵结束',
-    // '可d可d/*可d可d`fs*/fsd',
-    // 'ᄀ',
-    // `   var { a = '123', {c = 3, d = re3} } = 5`,
-    // 'null',
-    // 'window',
-    // 'navigator',
-    // 'history ',
-    // 'screen',
-    // 'document.createElement("div")',
-    // 'co/*nst',
-    // 'a',
-    // 'a42342323423234232342323423234232342323423234232342234232342323423234232342323422342323423234232342323423234223423234232342323423我是你爸爸23423234223423234232342323423234232342323423234232342323423234232342323423234232342323423',
-    // 'a*/',
-    // '',
-    // 'a{}{}{}',
-    // 'a this',
-    // 'atrue',
-    // 'a true',
-    // 'a false',
-    // 'if (i === 3) {',
-    // '  a = 5',
-    // '}',
-    // 'a',
-    // '341312//a',
-    // 'a',
-    // 'function a () {',
-    // '  a = 3',
-    // '}',
-    // '3',
-    // '36363636',
-    // 'a',
-    // 'a',
-    // '{',
-    // 'a: 3,',
-    // 'b: 4',
-    // '}',
-    // '35',
-    // '36',
-    // '37',
-    // '`a',
-    // 'a',
-    // 'a',
-    // 'a',
-    // 'a',
-    // 'a',
-    // 'a',
-    // 'a',
-    // 'ceshi'
-  ],
-  gutterWidth: 60,
+  gutterWidth,
   scrollThickness: 10,
   rollRange: 15,
   tabBlank: 2,
@@ -74,9 +23,11 @@ export default {
     rightGap: 20, //右边的空隙
   },
   cursorInfo: {
-    left: 0,
+    left: gutterWidth,
     top: 0,
-    cursorStrIndex: null,
-    cursorLineIndex: null
-  }
+    cursorStrIndex: 0,
+    cursorLineIndex: 0
+  },
+  textSnapShot: [],
+  cursorSnapShot: []
 }

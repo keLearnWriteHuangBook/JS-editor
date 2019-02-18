@@ -7,10 +7,15 @@ import editorDefaultConfig from './config/editorDefault'
 import './editor.scss'
 
 export default class Editor {
-  constructor(target) {
+  constructor(target, options) {
+    const { initText = '' } = options
     for (let key in editorDefaultConfig) {
       this[key] = editorDefaultConfig[key]
     }
+    
+    this.textPerLine = initText.split(/\r\n|\r|\n/)
+    this.textSnapShot.push(this.textPerLine.concat([]))
+    this.cursorSnapShot.push(Object.assign({}, this.cursorInfo))
     this.createEditor(target)
   }
 
@@ -79,5 +84,11 @@ export default class Editor {
     }
 
     return length
+  }
+  snapShot() {
+    this.textSnapShot.push(this.copyTextPerLine.concat([]))
+    this.cursorSnapShot.push(Object.assign({}, this.copyCursorInfo))
+    console.log(this.copyCursorInfo)
+    console.log(this.copyTextPerLine)
   }
 }
